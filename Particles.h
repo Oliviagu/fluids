@@ -25,6 +25,16 @@
 
 class Particles {
 public:
+	float kernel_size;
+   	float radius;
+   	float k;
+   	int n;
+   	float q;
+   	int epsilon;
+   	int nIters;
+   	float rest_density;
+    float dt;
+
     Particles();
     void render() const;
     void step(){} // simulate one frame
@@ -33,6 +43,7 @@ private:
     {
         glm::dvec3 p;
         glm::dvec3 v;
+
     };
     
     std::vector<Particle> particles;

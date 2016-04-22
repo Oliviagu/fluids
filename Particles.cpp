@@ -19,6 +19,17 @@ Particles::Particles()
     int ny = 10;
     int nz = 10;
     float d = 0.1;
+
+    kernel_size = d * 1.4;
+    radius = d * 0.45;
+    k = 0.001;
+    n = 4;
+    q = 0.2;
+    epsilon = 104;
+    nIters = 10;
+    rest_density = 1 / (d * d *d);
+    dt = 0.1;
+
     for(int x=0; x<nx; x++)
     {
         for(int y=0; y<ny; y++)
@@ -32,6 +43,14 @@ Particles::Particles()
         }
     }
 }
+
+// void Particles::step() //simulation loop
+// {
+//     for(Particle &par : particles) {
+        
+//     }
+
+// }
 
 void Particles::render() const
 {
