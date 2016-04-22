@@ -34,15 +34,22 @@ public:
    	int nIters;
    	float rest_density;
     float dt;
+    glm::dvec3 gravity;
 
     Particles();
     void render() const;
-    void step(){} // simulate one frame
-private:
+    void step(); // simulate one frame
+    glm::dvec3 extForce(glm::dvec3 position);
+    void findNeighbors(Particles::Particle &par);
+    void calcLambda(Particles::Particle &par);
+
     struct Particle
     {
         glm::dvec3 p;
+        glm::dvec3 newp;
         glm::dvec3 v;
+        std::vector<Particle> neighbors;
+        float lambda; //constraint force
 
     };
     

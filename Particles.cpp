@@ -29,6 +29,7 @@ Particles::Particles()
     nIters = 10;
     rest_density = 1 / (d * d *d);
     dt = 0.1;
+    gravity = glm::dvec3(0, 0, -9.81);
 
     for(int x=0; x<nx; x++)
     {
@@ -44,13 +45,57 @@ Particles::Particles()
     }
 }
 
-// void Particles::step() //simulation loop
-// {
-//     for(Particle &par : particles) {
-        
-//     }
+void Particles::step() //simulation loop
+{
+    for(Particle &par : particles) {
+        par.v = par.v + (glm::dvec3(dt, dt, dt) * extForce(par.p)); //apply forces
+        par.newp = par.p + (glm::dvec3(dt, dt, dt) * par.v); //predict position
+    }
+    for(Particle &par : particles) {
+        //findNeighbors will use par.newp and update par.neighbors
+        findNeighbors(par);
+    }
+    int iter = 0;
+    while (iter < nIters) {
+        for(Particle &par : particles) {
+            calcLambda(par); //lambda constraint force
+        }
+        for(Particle &par : particles) {
+            //calculate deltap
+            //collisions
+        }
+        for(Particle &par : particles) {
+            //update position
+        }
+        iter++;
+    }
+    for(Particle &par : particles) {
+        //update velocity
+        //apply vorticity
+        //update position
+    }
 
-// }
+}
+
+glm::dvec3 Particles::extForce(glm::dvec3 position) 
+//find forces and return extForce at position
+{
+    //FILL IN
+    return glm::dvec3(0, 0, 0);
+}
+
+void Particles::findNeighbors(Particles::Particle &par)
+//calculate neighbors and update par's neighbors
+{
+
+}
+
+void Particles::calcLambda(Particles::Particle &par)
+//calculate lambda and update par's lambda
+{
+
+}
+
 
 void Particles::render() const
 {
