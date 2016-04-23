@@ -23,6 +23,16 @@
 #include <math.h>
 #endif
 
+typedef struct Particle
+{
+    glm::dvec3 p;
+    glm::dvec3 newp;
+    glm::dvec3 v;
+    std::vector<Particle> neighbors;
+    float lambda; //constraint force
+
+} Particle;
+
 class Particles {
 public:
 	float kernel_size;
@@ -40,18 +50,9 @@ public:
     void render() const;
     void step(); // simulate one frame
     glm::dvec3 extForce(glm::dvec3 position);
-    void findNeighbors(Particles::Particle &par);
-    void calcLambda(Particles::Particle &par);
+    void findNeighbors(Particle &par);
+    void calcLambda(Particle &par);
 
-    struct Particle
-    {
-        glm::dvec3 p;
-        glm::dvec3 newp;
-        glm::dvec3 v;
-        std::vector<Particle> neighbors;
-        float lambda; //constraint force
-
-    };
     
     std::vector<Particle> particles;
 };

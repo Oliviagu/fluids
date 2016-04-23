@@ -84,13 +84,13 @@ glm::dvec3 Particles::extForce(glm::dvec3 position)
     return glm::dvec3(0, 0, 0);
 }
 
-void Particles::findNeighbors(Particles::Particle &par)
+void Particles::findNeighbors(Particle &par)
 //calculate neighbors and update par's neighbors
 {
 
 }
 
-void Particles::calcLambda(Particles::Particle &par)
+void Particles::calcLambda(Particle &par)
 //calculate lambda and update par's lambda
 {
 
