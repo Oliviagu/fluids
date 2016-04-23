@@ -73,8 +73,10 @@ void Particles::step() //simulation loop
     }
     for(Particle &par : particles) {
         //update velocity
+        par.v = (1.0 / dt) * (par.newp - par.p);
         //apply vorticity
         //update position
+        par.p = par.newp;
     }
 
 }
