@@ -12,7 +12,7 @@
  */
 
 #include "Particles.h"
-#define PI 3.14159265358979323846
+ 
 Particles::Particles() 
 {
     int nx = 10;
@@ -49,7 +49,7 @@ Particles::Particles()
 float Particles::calcPoly(glm::dvec3 r, float h) 
 {
     float temp = pow(h, 2.0) - pow(r.length(), 2.0);
-    return (315 / (64 * PI * pow(h, 9.0))) * pow(temp, 3.0);
+    return (315 / (64 * M_PI * pow(h, 9.0))) * pow(temp, 3.0);
 }
 
 void Particles::step() //simulation loop
@@ -147,7 +147,7 @@ void Particles::calcDeltaP(Particle &par)
 }
 
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p){
-  double constant =  45/3.1415 * pow(kernel_size,6) * pow(kernel_size - p.length(),2)/ p.length() ;
+  double constant =  45/M_PI * pow(kernel_size,6) * pow(kernel_size - p.length(),2)/ p.length() ;
   return p * constant;
 }
 
