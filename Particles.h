@@ -36,7 +36,7 @@ typedef struct Particle
 
 class Particles {
 public:
-	float kernel_size;
+	  float kernel_size;
    	float radius;
    	float k;
    	int n;
@@ -49,6 +49,7 @@ public:
 
     Particles();
     void render() const;
+    float calcPoly(glm::dvec3 r, float h);
     void step(); // simulate one frame
     glm::dvec3 extForce(glm::dvec3 position);
     void findNeighbors(Particle &par);

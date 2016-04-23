@@ -12,7 +12,7 @@
  */
 
 #include "Particles.h"
-
+#define PI 3.14159265358979323846
 Particles::Particles() 
 {
     int nx = 10;
@@ -43,6 +43,13 @@ Particles::Particles()
             }
         }
     }
+}
+
+//Kernel Functions
+float Particles::calcPoly(glm::dvec3 r, float h) 
+{
+    float temp = pow(h, 2.0) - pow(r.length(), 2.0);
+    return (315 / (64 * PI * pow(h, 9.0))) * pow(temp, 3.0);
 }
 
 void Particles::step() //simulation loop
@@ -96,6 +103,30 @@ void Particles::findNeighbors(Particle &par)
 void Particles::calcLambda(Particle &par)
 //calculate lambda and update par's lambda
 {
+    //calculate Ci = pi/rest_density - 1
+    float Ci;
+    float pi;
+    for (Particle &neighbor : par.neighbors) {
+        pi += calcPoly(par.p - neighbor.p, kernel_size);
+    }
+    Ci = pi/rest_density - 1;
+
+    //calculate pkCi
+    float pkCi;
+    double iSum; //pkCi for when k = 1
+    glm::dvec3 iSumVec;
+    float jSum;
+    for (Particle &neighbor : par.neighbors) {
+        iSumVec += calcSpiky(par.p - neighbor.p, kernel_size);
+
+        float jSumTemp = (float) ((1/rest_density) * -calcSpiky(par.p - neighbor.p, kernel_size)).length();
+        jSum += pow(jSumTemp, 2.0);
+    }
+    iSumVec = (1/rest_density) * iSumVec;
+    iSum += pow(iSumVec.length(), 2.0);
+    pkCi = iSum + jSum;
+
+    par.lambda = -(Ci / pkCi);
 
 }
 
