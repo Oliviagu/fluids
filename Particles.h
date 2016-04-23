@@ -43,7 +43,7 @@ public:
    	float q;
    	int epsilon;
    	int nIters;
-   	float rest_density;
+   	double rest_density;
     double dt;
     glm::dvec3 gravity;
 

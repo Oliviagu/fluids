@@ -117,9 +117,9 @@ void Particles::calcLambda(Particle &par)
     glm::dvec3 iSumVec;
     float jSum;
     for (Particle &neighbor : par.neighbors) {
-        iSumVec += calcSpiky(par.p - neighbor.p, kernel_size);
+        iSumVec += calcSpiky(par.p - neighbor.p);
 
-        float jSumTemp = (float) ((1/rest_density) * -calcSpiky(par.p - neighbor.p, kernel_size)).length();
+        float jSumTemp = (float) (1/rest_density) * -calcSpiky(par.p - neighbor.p).length();
         jSum += pow(jSumTemp, 2.0);
     }
     iSumVec = (1/rest_density) * iSumVec;
