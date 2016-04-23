@@ -54,7 +54,7 @@ public:
     void findNeighbors(Particle &par);
     void calcLambda(Particle &par);
     void calcDeltaP(Particle &par);
-
+    glm::dvec3 calcSpiky(glm::dvec3 pos);
     
     std::vector<Particle> particles;
 };

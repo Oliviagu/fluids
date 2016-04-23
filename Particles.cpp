@@ -100,7 +100,22 @@ void Particles::calcLambda(Particle &par)
 void Particles::calcDeltaP(Particle &par)
 //calculate lambda and update par's lambda
 {
+  double sum = 0;
+  glm::vec3 deltaP = glm::vec3(0,0,0);
+  findNeighbors(par);
+  for(Particle &other_particle : par.neighbors) {
+    double new_lambda = other_particle.lambda + par.lambda;
+    deltaP += calcSpiky(par.p - other_particle.p) * new_lambda/(1.0/rest_density);
 
+    
+  }
+  double densityConstant  = (1.0/rest_density); 
+  par.deltap =  deltaP;
+}
+
+glm::dvec3 Particles::calcSpiky(glm::dvec3 p){
+  double constant =  45/3.1415 * pow(kernel_size,6) * pow(kernel_size - p.length(),2)/ p.length() ;
+  return p * constant;
 }
 
 void Particles::render() const
