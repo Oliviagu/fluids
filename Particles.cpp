@@ -48,8 +48,8 @@ Particles::Particles()
 void Particles::step() //simulation loop
 {
     for(Particle &par : particles) {
-        par.v = par.v + (glm::dvec3(dt, dt, dt) * extForce(par.p)); //apply forces
-        par.newp = par.p + (glm::dvec3(dt, dt, dt) * par.v); //predict position
+        par.v = par.v + (extForce(par.p) * dt); //apply forces
+        par.newp = par.p + (dt * par.v); //predict position
     }
     for(Particle &par : particles) {
         //findNeighbors will use par.newp and update par.neighbors
@@ -62,10 +62,12 @@ void Particles::step() //simulation loop
         }
         for(Particle &par : particles) {
             //calculate deltap
+            calcDeltaP(par);
             //collisions
         }
         for(Particle &par : particles) {
-            //update position
+            //update new position
+            par.newp += par.deltap;
         }
         iter++;
     }
@@ -80,8 +82,7 @@ void Particles::step() //simulation loop
 glm::dvec3 Particles::extForce(glm::dvec3 position) 
 //find forces and return extForce at position
 {
-    //FILL IN
-    return glm::dvec3(0, 0, 0);
+    return glm::dvec3(0, 0, -9.81);
 }
 
 void Particles::findNeighbors(Particle &par)
@@ -96,6 +97,11 @@ void Particles::calcLambda(Particle &par)
 
 }
 
+void Particles::calcDeltaP(Particle &par)
+//calculate lambda and update par's lambda
+{
+
+}
 
 void Particles::render() const
 {

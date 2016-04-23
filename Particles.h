@@ -30,6 +30,7 @@ typedef struct Particle
     glm::dvec3 v;
     std::vector<Particle> neighbors;
     float lambda; //constraint force
+    glm::dvec3 deltap;
 
 } Particle;
 
@@ -43,7 +44,7 @@ public:
    	int epsilon;
    	int nIters;
    	float rest_density;
-    float dt;
+    double dt;
     glm::dvec3 gravity;
 
     Particles();
@@ -52,6 +53,7 @@ public:
     glm::dvec3 extForce(glm::dvec3 position);
     void findNeighbors(Particle &par);
     void calcLambda(Particle &par);
+    void calcDeltaP(Particle &par);
 
     
     std::vector<Particle> particles;
