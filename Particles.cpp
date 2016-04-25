@@ -120,7 +120,7 @@ void Particles::calcLambda(Particle &par)
     float jSum;
     for (Particle &neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.p - neighbor.p, kernel_size);
-
+        //TODO with respect to p_k
         float jSumTemp = (float) (1/rest_density) * -calcSpiky(par.p - neighbor.p, kernel_size).length();
         jSum += pow(jSumTemp, 2.0);
     }
@@ -129,6 +129,23 @@ void Particles::calcLambda(Particle &par)
     pkCi = iSum + jSum;
 
     par.lambda = -(Ci / pkCi);
+    //TODO ask Olivia about new interpretation on calcLambda
+//    Particle *orig_par = par;
+//    double gradient_constraint_neighbors = epsilon;
+//    for (Particle &neighbor : par.neighbors) {
+//        Particle *next_par = neighbor;
+//        glm::dvec3 gradient_constraint_fn = glm::dvec3(0.0, 0.0, 0.0);
+//        if (orig_par == next_par) {
+//          for (Particle &next_neighbor : par.neighbors) {
+//            gradient_constraint_fn += calcSpiky(par.p - next_neighbor.p, kernel_size);
+//          }
+//        } else {
+//          gradient_constraint_fn = -1.0 * calcSpiky(par.p - neighbor.p, kernel_size);
+//        }
+//        gradient_constraint_fn = (1.0 / rest_density) * gradient_constraint_fn;
+//        gradient_constraint_neighbors += pow(gradient_constraint_fn.length(), 2.0);
+//    }
+//    par.lambda = -1.0 * (Ci / gradient_constraint_neighbors);
 
 }
 
@@ -159,11 +176,11 @@ void Particles::calcVorticity(Particle &par)
     glm::dvec3 vorticity = glm::dvec3(0.0, 0.0, 0.0);
     for (Particle &neighbor : par.neighbors) {
         //TODO calcSpiky with respect to neighbor
-        vorticity += (neighbor.v - par.v) * calcSpiky(par.p - neighbor.p, kernel_size);
+        vorticity += cross((neighbor.v - par.v), calcSpiky(par.p - neighbor.p, kernel_size));
     }
     double gradient_vorticity = (vorticity.x + vorticity.y + vorticity.z) * pow(pow(vorticity.x, 2) + pow(vorticity.y, 2) + pow(vorticity.z, 2), -0.5);
     double N = gradient_vorticity / fabs(gradient_vorticity); //is it fabs?
-    glm::dvec3 f_vorticity = epsilon * (N * vorticity);
+    glm::dvec3 f_vorticity = epsilon * cross(N, vorticity);
     par.v += (f_vorticity * dt); //apply forces
 }
 void Particles::calcViscosity(Particle &par)
