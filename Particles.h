@@ -41,11 +41,10 @@ public:
    	float k;
    	int n;
    	float q;
-   	int epsilon;
+   	double epsilon;
    	int nIters;
    	float rest_density;
     double dt;
-    glm::dvec3 gravity;
 
     Particles();
     void render() const;
@@ -54,6 +53,8 @@ public:
     void findNeighbors(Particle &par);
     void calcLambda(Particle &par);
     void calcDeltaP(Particle &par);
+    void calcVorticity(Particle &par);
+    void calcViscosity(Particle &par);
 
     
     std::vector<Particle> particles;

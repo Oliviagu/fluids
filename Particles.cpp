@@ -29,7 +29,6 @@ Particles::Particles()
     nIters = 10;
     rest_density = 1 / (d * d *d);
     dt = 0.1;
-    gravity = glm::dvec3(0, 0, -9.81);
 
     for(int x=0; x<nx; x++)
     {
@@ -75,6 +74,8 @@ void Particles::step() //simulation loop
         //update velocity
         par.v = (1.0 / dt) * (par.newp - par.p);
         //apply vorticity
+        calcVorticity(par);
+        calcViscosity(par);
         //update position
         par.p = par.newp;
     }
@@ -105,6 +106,29 @@ void Particles::calcDeltaP(Particle &par)
 
 }
 
+void Particles::calcVorticity(Particle &par)
+//calculate lambda and update par's lambda
+{
+    glm::dvec3 vorticity = glm::dvec3(0.0, 0.0, 0.0);
+    for (Particle &neighbor : par.neighbors) {
+        //TODO calcSpiky with respect to neighbor
+        vorticity += (neighbor.v - par.v) * calcSpiky(par.p - neighbor.p, kernel_size);
+    }
+    double gradient_vorticity = (vorticity.x + vorticity.y + vorticity.z) * pow(pow(vorticity.x, 2) + pow(vorticity.y, 2) + pow(vorticity.z, 2), -0.5);
+    double N = gradient_vorticity / fabs(gradient_vorticity); //is it fabs?
+    glm::dvec3 f_vorticity = epsilon * (N * vorticity);
+    par.v += (f_vorticity * dt); //apply forces
+}
+void Particles::calcViscosity(Particle &par)
+//calculate lambda and update par's lambda
+{
+    glm::dvec3 viscosity = glm::dvec3(0.0, 0.0, 0.0);
+    for (Particle &neighbor : par.neighbors) {
+        //TODO calcSpiky with respect to neighbor
+        viscosity += (neighbor.v - par.v) * calcPoly(par.p - neighbor.p, kernel_size);
+    }
+    par.v += 0.01 * viscosity; 
+}
 void Particles::render() const
 {
     GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
