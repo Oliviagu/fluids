@@ -36,14 +36,14 @@ typedef struct Particle
 
 class Particles {
 public:
-	float kernel_size;
+	  float kernel_size;
    	float radius;
    	float k;
    	int n;
    	float q;
    	double epsilon;
    	int nIters;
-   	float rest_density;
+   	double rest_density;
     double dt;
 
     Particles();
@@ -55,7 +55,8 @@ public:
     void calcDeltaP(Particle &par);
     void calcVorticity(Particle &par);
     void calcViscosity(Particle &par);
-
+    double calcPoly(glm::dvec3 r, float h);
+    glm::dvec3 calcSpiky(glm::dvec3 pos, float h);
     
     std::vector<Particle> particles;
 };

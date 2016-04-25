@@ -12,7 +12,7 @@
  */
 
 #include "Particles.h"
-
+ 
 Particles::Particles() 
 {
     int nx = 10;
@@ -42,6 +42,13 @@ Particles::Particles()
             }
         }
     }
+}
+
+//Kernel Functions
+double Particles::calcPoly(glm::dvec3 r, float h) 
+{
+    double temp = pow(h, 2.0) - pow(r.length(), 2.0);
+    return (315 / (64 * M_PI * pow(h, 9.0))) * pow(temp, 3.0);
 }
 
 void Particles::step() //simulation loop
@@ -75,6 +82,7 @@ void Particles::step() //simulation loop
         par.v = (1.0 / dt) * (par.newp - par.p);
         //apply vorticity
         calcVorticity(par);
+        //apply viscosity
         calcViscosity(par);
         //update position
         par.p = par.newp;
@@ -97,13 +105,52 @@ void Particles::findNeighbors(Particle &par)
 void Particles::calcLambda(Particle &par)
 //calculate lambda and update par's lambda
 {
+    //calculate Ci = pi/rest_density - 1
+    float Ci;
+    float pi;
+    for (Particle &neighbor : par.neighbors) {
+        pi += calcPoly(par.p - neighbor.p, kernel_size);
+    }
+    Ci = pi/rest_density - 1;
+
+    //calculate pkCi
+    float pkCi;
+    double iSum; //pkCi for when k = 1
+    glm::dvec3 iSumVec;
+    float jSum;
+    for (Particle &neighbor : par.neighbors) {
+        iSumVec += calcSpiky(par.p - neighbor.p, kernel_size);
+
+        float jSumTemp = (float) (1/rest_density) * -calcSpiky(par.p - neighbor.p, kernel_size).length();
+        jSum += pow(jSumTemp, 2.0);
+    }
+    iSumVec = (1/rest_density) * iSumVec;
+    iSum += pow(iSumVec.length(), 2.0);
+    pkCi = iSum + jSum;
+
+    par.lambda = -(Ci / pkCi);
 
 }
 
 void Particles::calcDeltaP(Particle &par)
 //calculate lambda and update par's lambda
 {
+  double sum = 0;
+  glm::vec3 deltaP = glm::vec3(0,0,0);
+  findNeighbors(par);
+  for(Particle &other_particle : par.neighbors) {
+    double new_lambda = other_particle.lambda + par.lambda;
+    deltaP += calcSpiky(par.p - other_particle.p, kernel_size) * new_lambda/(1.0/rest_density);
 
+    
+  }
+  double densityConstant  = (1.0/rest_density); 
+  par.deltap =  deltaP;
+}
+
+glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
+  double constant =  45/M_PI * pow(h,6) * pow(h - p.length(),2)/ p.length() ;
+  return p * constant;
 }
 
 void Particles::calcVorticity(Particle &par)
