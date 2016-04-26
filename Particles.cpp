@@ -85,7 +85,6 @@ void Particles::step() //simulation loop
         //update position
         par.p = par.newp;
     }
-
 }
 
 glm::dvec3 Particles::extForce(glm::dvec3 position) 
