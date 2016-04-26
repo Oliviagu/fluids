@@ -53,40 +53,40 @@ double Particles::calcPoly(glm::dvec3 r, float h)
 
 void Particles::step() //simulation loop
 {
-    for(Particle &par : particles) {
-        par.v = par.v + (extForce(par.p) * dt); //apply forces
-        par.newp = par.p + (dt * par.v); //predict position
-    }
-    for(Particle &par : particles) {
-        //findNeighbors will use par.newp and update par.neighbors
-        findNeighbors(par);
-    }
-    int iter = 0;
-    while (iter < nIters) {
-        for(Particle &par : particles) {
-            calcLambda(par); //lambda constraint force
-        }
-        for(Particle &par : particles) {
-            //calculate deltap
-            calcDeltaP(par);
-            //collisions
-        }
-        for(Particle &par : particles) {
-            //update new position
-            par.newp += par.deltap;
-        }
-        iter++;
-    }
-    for(Particle &par : particles) {
-        //update velocity
-        par.v = (1.0 / dt) * (par.newp - par.p);
-        //apply vorticity
-        calcVorticity(par);
-        //apply viscosity
-        calcViscosity(par);
-        //update position
-        par.p = par.newp;
-    }
+//    for(Particle &par : particles) {
+//        par.v = par.v + (extForce(par.p) * dt); //apply forces
+//        par.newp = par.p + (dt * par.v); //predict position
+//    }
+//    for(Particle &par : particles) {
+//        //findNeighbors will use par.newp and update par.neighbors
+//        findNeighbors(par);
+//    }
+//    int iter = 0;
+//    while (iter < nIters) {
+//        for(Particle &par : particles) {
+//            calcLambda(par); //lambda constraint force
+//        }
+//        for(Particle &par : particles) {
+//            //calculate deltap
+//            calcDeltaP(par);
+//            //collisions
+//        }
+//        for(Particle &par : particles) {
+//            //update new position
+//            par.newp += par.deltap;
+//        }
+//        iter++;
+//    }
+//    for(Particle &par : particles) {
+//        //update velocity
+//        par.v = (1.0 / dt) * (par.newp - par.p);
+//        //apply vorticity
+//        calcVorticity(par);
+//        //apply viscosity
+//        calcViscosity(par);
+//        //update position
+//        par.p = par.newp;
+//    }
 
 }
 
@@ -178,8 +178,8 @@ void Particles::calcVorticity(Particle &par)
         //TODO calcSpiky with respect to neighbor
         vorticity += cross((neighbor.v - par.v), calcSpiky(par.p - neighbor.p, kernel_size));
     }
-    double gradient_vorticity = (vorticity.x + vorticity.y + vorticity.z) * pow(pow(vorticity.x, 2) + pow(vorticity.y, 2) + pow(vorticity.z, 2), -0.5);
-    double N = gradient_vorticity / fabs(gradient_vorticity); //is it fabs?
+    glm::dvec3 gradient_vorticity = pow(pow(vorticity.x, 2) + pow(vorticity.y, 2) + pow(vorticity.z, 2), -0.5) * vorticity;
+    glm::dvec3 N = gradient_vorticity * (1.0 / (double) gradient_vorticity.length()); 
     glm::dvec3 f_vorticity = epsilon * cross(N, vorticity);
     par.v += (f_vorticity * dt); //apply forces
 }
