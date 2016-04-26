@@ -54,7 +54,8 @@ public:
     void render() const;
     void step(); // simulate one frame
     glm::dvec3 extForce(glm::dvec3 position);
-    void findNeighbors(Particle &par);
+    void createCellIdList(std::vector<std::tuple<int, Particle *>> &cell_id_list);
+    void findNeighbors(Particle &par, std::vector<std::tuple<int, Particle *>>);
     void calcLambda(Particle &par);
     void calcDeltaP(Particle &par);
     void calcVorticity(Particle &par);

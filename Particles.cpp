@@ -60,9 +60,11 @@ void Particles::step() //simulation loop
 //        par.v = par.v + (extForce(par.p) * dt); //apply forces
 //        par.newp = par.p + (dt * par.v); //predict position
 //    }
+//    std::vector<std::tuple<int, Particle *>>  cell_id_list; 
+//    createCellIdList(cell_id_list);
 //    for(Particle &par : particles) {
 //        //findNeighbors will use par.newp and update par.neighbors
-//        findNeighbors(par);
+//        findNeighbors(par, cell_id_list);
 //    }
 //    int iter = 0;
 //    while (iter < nIters) {
@@ -99,7 +101,14 @@ glm::dvec3 Particles::extForce(glm::dvec3 position)
     return glm::dvec3(0, 0, -9.81);
 }
 
-void Particles::findNeighbors(Particle &par)
+void Particles::createCellIdList(std::vector<std::tuple<int, Particle *>> &cell_id_list) {  
+    for (Particle &par :: particles) {
+      cell_id_list.push_back(std::make_tuple(find_cell_id(par), &par))
+    }
+    std::sort(cell_id_list.begin(), cell_id_list.end());
+}
+
+void Particles::findNeighbors(Particle &par, std::vector<std::tuple<int, Particle *>>)
 //calculate neighbors and update par's neighbors
 {
 
@@ -138,6 +147,7 @@ void Particles::calcLambda(Particle &par)
 //    for (Particle &neighbor : par.neighbors) {
 //        Particle *next_par = neighbor;
 //        glm::dvec3 gradient_constraint_fn = glm::dvec3(0.0, 0.0, 0.0);
+//        // &par == &next_par might work too
 //        if (orig_par == next_par) {
 //          for (Particle &next_neighbor : par.neighbors) {
 //            gradient_constraint_fn += calcSpiky(par.p - next_neighbor.p, kernel_size);
@@ -157,7 +167,7 @@ void Particles::calcDeltaP(Particle &par)
 {
   double sum = 0;
   glm::vec3 deltaP = glm::vec3(0,0,0);
-  findNeighbors(par);
+  //findNeighbors(par);
   for(Particle &other_particle : par.neighbors) {
     double new_lambda = other_particle.lambda + par.lambda;
     deltaP += calcSpiky(par.p - other_particle.p, kernel_size) * new_lambda/(1.0/rest_density);
