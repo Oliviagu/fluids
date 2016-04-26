@@ -13,8 +13,11 @@
 
 #include "Particles.h"
  
-Particles::Particles() 
+Particles::Particles(int cube_width, int cube_length, int cube_height) 
 {
+    cube_width = cube_width;
+    cube_length = cube_length;
+    cube_height = cube_height;
     int nx = 10;
     int ny = 10;
     int nz = 10;

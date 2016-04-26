@@ -36,6 +36,10 @@ typedef struct Particle
 
 class Particles {
 public:
+    Particles (int cube_width, int cube_length, int cube_height);
+    int cube_width;
+    int cube_length;
+    int cube_height;
 	  float kernel_size;
    	float radius;
    	float k;
