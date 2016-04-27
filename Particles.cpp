@@ -62,42 +62,40 @@ double Particles::calcPoly(glm::dvec3 r, float h)
 void Particles::step() //simulation loop
 {
 
-//    for(Particle &par : particles) {
-//        par.v = par.v + (extForce(par.p) * dt); //apply forces
-//        par.newp = par.p + (dt * par.v); //predict position
-//    }
-//    std::map<int, std::vector<Particle *>>  cell_id_list; 
-//    createCellIdList(cell_id_list);
-//    for(Particle &par : particles) {
-//        //findNeighbors will use par.newp and update par.neighbors
-//        findNeighbors(par, cell_id_list);
-//    }
-//    int iter = 0;
-//    while (iter < nIters) {
-//        for(Particle &par : particles) {
-//            calcLambda(par); //lambda constraint force
-//        }
-//        for(Particle &par : particles) {
-//            //calculate deltap
-//            calcDeltaP(par);
-//            //collisions
-//        }
-//        for(Particle &par : particles) {
-//            //update new position
-//            par.newp += par.deltap;
-//        }
-//        iter++;
-//    }
-//    for(Particle &par : particles) {
-//        //update velocity
-//        par.v = (1.0 / dt) * (par.newp - par.p);
-//        //apply vorticity
-//        calcVorticity(par);
-//        //apply viscosity
-//        calcViscosity(par);
-//        //update position
-//        par.p = par.newp;
-//    }
+    for(Particle &par : particles) {
+        par.v = par.v + (extForce(par.p) * dt); //apply forces
+        par.newp = par.p + (dt * par.v); //predict position
+    }
+    std::map<int, std::vector<Particle *>>  cell_id_list; 
+    createCellIdList(cell_id_list);
+    for(Particle &par : particles) {
+        //findNeighbors will use par.newp and update par.neighbors
+        findNeighbors(par, cell_id_list);
+    }
+    int iter = 0;
+    while (iter < nIters) {
+        for(Particle &par : particles) {
+            calcLambda(par); //lambda constraint force
+        }
+        for(Particle &par : particles) {
+            //calculate deltap
+            calcDeltaP(par);
+            par.newp += par.deltap;
+            //collisions
+
+        }
+        iter++;
+    }
+    for(Particle &par : particles) {
+        //update velocity
+        par.v = (1.0 / dt) * (par.newp - par.p);
+        //apply vorticity
+        calcVorticity(par);
+        //apply viscosity
+        calcViscosity(par);
+        //update position
+        par.p = par.newp;
+    }
 
 }
 
