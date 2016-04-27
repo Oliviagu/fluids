@@ -90,8 +90,9 @@ void Particles::step() //simulation loop
 //        calcVorticity(par);
 //        //apply viscosity
 //        calcViscosity(par);
-//        //update position
+//        update Position
 //        par.p = par.newp;
+
 //    }
 
 }
@@ -191,7 +192,7 @@ void Particles::calcDeltaP(Particle &par)
 }
 
 void Particles::calcPosition(Particle &par){
-    glm::dvec3 position = par.newp+ par.p;
+    glm::dvec3 position = par.deltap + par.p;
     if (position.x > 2.0){
         position.x = 2.0;
     }
@@ -210,7 +211,7 @@ void Particles::calcPosition(Particle &par){
     if (position.z < -2.0){
         position.z = -2.0;
     }
-    par.p = position;
+    par.newp = position;
 }
 
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
