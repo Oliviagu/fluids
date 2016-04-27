@@ -132,7 +132,7 @@ void Particles::calcLambda(Particle &par)
     }
     iSumVec = (1/rest_density) * iSumVec;
     iSum += pow(iSumVec.length(), 2.0);
-    pkCi = iSum + jSum;
+    pkCi = iSum + jSum + epsilon;
 
     par.lambda = -(Ci / pkCi);
     //TODO ask Olivia about new interpretation on calcLambda
