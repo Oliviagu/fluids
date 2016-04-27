@@ -23,8 +23,11 @@ int height = 800;
 int frame = 0;
 const int render_step = 3;
 int mx, my;
+int cube_width = 600;
+int cube_length = 600;
+int cube_height = 600;
 
-Particles particles;
+Particles particles = Particles(cube_width, cube_length, cube_height);
 
 void display(void);
 

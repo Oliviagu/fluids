@@ -36,26 +36,31 @@ typedef struct Particle
 
 class Particles {
 public:
+    Particles (int cube_width, int cube_length, int cube_height);
+    int cube_width;
+    int cube_length;
+    int cube_height;
 	  float kernel_size;
    	float radius;
    	float k;
    	int n;
    	float q;
-   	int epsilon;
+   	double epsilon;
    	int nIters;
    	double rest_density;
     double dt;
-    glm::dvec3 gravity;
 
     Particles();
     void render() const;
-    float calcPoly(glm::dvec3 r, float h);
     void step(); // simulate one frame
     glm::dvec3 extForce(glm::dvec3 position);
     void findNeighbors(Particle &par);
     void calcLambda(Particle &par);
     void calcDeltaP(Particle &par);
-    glm::dvec3 calcSpiky(glm::dvec3 pos);
+    void calcVorticity(Particle &par);
+    void calcViscosity(Particle &par);
+    double calcPoly(glm::dvec3 r, float h);
+    glm::dvec3 calcSpiky(glm::dvec3 pos, float h);
     
     std::vector<Particle> particles;
 };
