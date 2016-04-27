@@ -24,7 +24,9 @@ Particles::Particles(int cube_width, int cube_length, int cube_height)
     float d = 0.1;
 
     kernel_size = d * 1.4;
-    radius = d * 0.45;
+    //TODO weilun doesn't use this radius when rendering
+    //radius = d * 0.45;
+    radius = 0.05;
     k = 0.001;
     n = 4;
     q = 0.2;
@@ -105,7 +107,8 @@ glm::dvec3 Particles::extForce(glm::dvec3 position)
 
 void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_id_map) {  
     for (Particle &par : particles) {
-        par.cellId = findCellId(par.p);
+        glm::dvec3 par_cell = glm::dvec3((int) par.p.x / (2 * radius), (int) par.p.y / (2 * radius), (int) par.p.z / (2 * radius));
+        par.cellId = findCellId(par_cell);
         if (cell_id_map.find(par.cellId) != cell_id_map.end()) {
             cell_id_map.insert(std::pair<int, std::vector<Particle *>>(par.cellId, std::vector<Particle *> ()));
         }
@@ -115,16 +118,19 @@ void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_i
 
 int Particles::findCellId(glm::dvec3 position)
 {
-    if (position.x < 0 or position.x >= cube_width) {
+    int x = position.x;
+    int y = position.y;
+    int z = position.z;
+    if (x < 0 or x >= cube_width) {
       return -1;
     }
-    if (position.y < 0 or position.y >= cube_height) {
+    if (y < 0 or y >= cube_height) {
       return -1;
     }
-    if (position.z < 0 or position.z >= cube_length) {
+    if (z < 0 or z >= cube_length) {
       return -1;
     }
-    return cube_width * position.y + position.x + position.y * (cube_width * cube_height);
+    return cube_width * y + x + y * (cube_width * cube_height);
 }
 
 
@@ -132,10 +138,11 @@ void Particles::findNeighbors(Particle &par, std::map<int, std::vector<Particle 
 //calculate neighbors and update par's neighbors
 {
   //par.neighbor already has self in the initialization
-  for (float x = -1; x <= 1; x += 1) {
-    for (float y = -1; y <= 1; y += 1) {
-      for (float z = -1; z <= 1; z += 1) {
-        int neighbor = findCellId(glm::dvec3(par.p.x + x, par.p.y + y, par.p.z + z));
+  for (int x = -1; x <= 1; x += 1) {
+    for (int y = -1; y <= 1; y += 1) {
+      for (int z = -1; z <= 1; z += 1) {
+        glm::dvec3 par_cell = glm::dvec3((int) par.p.x / (2 * radius), (int) par.p.y / (2 * radius), (int) par.p.z / (2 * radius));
+        int neighbor = findCellId(glm::dvec3(par_cell.x + x, par_cell.y + y, par_cell.z + z));
         if (neighbor != -1) {
           if (cell_id_map.find(neighbor) != cell_id_map.end()) {
             par.neighbors.insert(par.neighbors.end(), cell_id_map[neighbor].begin(), cell_id_map[neighbor].end());
@@ -267,7 +274,7 @@ void Particles::render() const
         
         glPushMatrix();
         glTranslatef(par.p.x, par.p.y, par.p.z);
-        glutSolidSphere(0.05, 10, 10);
+        glutSolidSphere(radius, 10, 10);
         glPopMatrix();
     }
     
