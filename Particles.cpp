@@ -79,7 +79,7 @@ void Particles::step() //simulation loop
 //        }
 //        for(Particle &par : particles) {
 //            //update new position
-//            par.newp += par.deltap;
+//            calcPosition(par);
 //        }
 //        iter++;
 //    }
@@ -188,6 +188,29 @@ void Particles::calcDeltaP(Particle &par)
   }
   double densityConstant  = (1.0/rest_density); 
   par.deltap =  deltaP;
+}
+
+void Particles::calcPosition(Particle &par){
+    glm::dvec3 position = par.newp+ par.p;
+    if (position.x > 2.0){
+        position.x = 2.0;
+    }
+    if (position.y > 2.0){
+        position.y = 2.0;
+    }
+    if (position.z > 2.0){
+        position.z = 2.0;
+    }
+    if (position.x < -2.0){
+        position.x = -2.0;
+    }
+    if (position.y < -2.0){
+        position.y = -2.0;
+    }
+    if (position.z < -2.0){
+        position.z = -2.0;
+    }
+    par.p = position;
 }
 
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){

@@ -61,6 +61,7 @@ public:
     void calcLambda(Particle &par);
     int findCellId(Particle &par);
     void calcDeltaP(Particle &par);
+    void calcPosition(Particle &par);
     void calcVorticity(Particle &par);
     void calcViscosity(Particle &par);
     double calcPoly(glm::dvec3 r, float h);
