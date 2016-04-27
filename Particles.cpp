@@ -61,7 +61,7 @@ void Particles::step() //simulation loop
 //        par.v = par.v + (extForce(par.p) * dt); //apply forces
 //        par.newp = par.p + (dt * par.v); //predict position
 //    }
-//    std::vector<std::tuple<int, Particle *>>  cell_id_list; 
+//    std::map<int, std::vector<Particle *>>  cell_id_list; 
 //    createCellIdList(cell_id_list);
 //    for(Particle &par : particles) {
 //        //findNeighbors will use par.newp and update par.neighbors
@@ -102,14 +102,23 @@ glm::dvec3 Particles::extForce(glm::dvec3 position)
     return glm::dvec3(0, 0, -9.81);
 }
 
-void Particles::createCellIdList(std::vector<std::tuple<int, Particle *>> &cell_id_list) {  
-    for (Particle &par :: particles) {
-      cell_id_list.push_back(std::make_tuple(find_cell_id(par), &par))
+void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_id_map) {  
+    for (Particle &par : particles) {
+        par.cellId = findCellId(par);
+        if (cell_id_map.find(par.cellId) != cell_id_map.end()) {
+            cell_id_map.insert(std::pair<int, std::vector<Particle *>>(par.cellId, std::vector<Particle *> ()));
+        }
+        cell_id_map[par.cellId].push_back(&par);
     }
-    std::sort(cell_id_list.begin(), cell_id_list.end());
 }
 
-void Particles::findNeighbors(Particle &par, std::vector<std::tuple<int, Particle *>>)
+int Particles::findCellId(Particle &par)
+{
+    return 0;
+}
+
+
+void Particles::findNeighbors(Particle &par, std::map<int, std::vector<Particle *>>  &cell_id_map)
 //calculate neighbors and update par's neighbors
 {
 
@@ -134,7 +143,7 @@ void Particles::calcLambda(Particle &par)
     for (Particle &neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.p - neighbor.p, kernel_size);
         //TODO with respect to p_k
-        if (par != neighbor) {
+        if (&par != &neighbor) {
             float jSumTemp = (float) (1/rest_density) * -calcSpiky(par.p - neighbor.p, kernel_size).length();
             jSum += pow(jSumTemp, 2.0);
         }

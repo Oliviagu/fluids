@@ -16,6 +16,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <map> 
 #if defined(__APPLE_CC__)
 #include <GLUT/glut.h>
 #else
@@ -31,6 +32,7 @@ typedef struct Particle
     std::vector<Particle> neighbors;
     float lambda; //constraint force
     glm::dvec3 deltap;
+    int cellId;
 
 } Particle;
 
@@ -54,9 +56,10 @@ public:
     void render() const;
     void step(); // simulate one frame
     glm::dvec3 extForce(glm::dvec3 position);
-    void createCellIdList(std::vector<std::tuple<int, Particle *>> &cell_id_list);
-    void findNeighbors(Particle &par, std::vector<std::tuple<int, Particle *>>);
+    void createCellIdList(std::map<int, std::vector<Particle *>>  &cell_id_map);
+    void findNeighbors(Particle &par, std::map<int, std::vector<Particle *>>  &cell_id_map);
     void calcLambda(Particle &par);
+    int findCellId(Particle &par);
     void calcDeltaP(Particle &par);
     void calcVorticity(Particle &par);
     void calcViscosity(Particle &par);
