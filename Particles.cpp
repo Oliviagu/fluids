@@ -15,9 +15,6 @@
  
 Particles::Particles(int cube_width, int cube_length, int cube_height) 
 {
-    cube_width = cube_width;
-    cube_length = cube_length;
-    cube_height = cube_height;
     int nx = 10;
     int ny = 10;
     int nz = 10;
@@ -27,6 +24,11 @@ Particles::Particles(int cube_width, int cube_length, int cube_height)
     //TODO weilun doesn't use this radius when rendering
     //radius = d * 0.45;
     radius = 0.05;
+
+    cube_width_num_cells = cube_width / (radius * 2);
+    cube_length_num_cells = cube_length / (radius * 2);
+    cube_height_num_cells = cube_height / (radius * 2);
+
     k = 0.001;
     n = 4;
     q = 0.2;
@@ -121,16 +123,16 @@ int Particles::findCellId(glm::dvec3 position)
     int x = position.x;
     int y = position.y;
     int z = position.z;
-    if (x < 0 or x >= cube_width) {
+    if (x < 0 or x >= cube_width_num_cells) {
       return -1;
     }
-    if (y < 0 or y >= cube_height) {
+    if (y < 0 or y >= cube_height_num_cells) {
       return -1;
     }
-    if (z < 0 or z >= cube_length) {
+    if (z < 0 or z >= cube_length_num_cells) {
       return -1;
     }
-    return cube_width * y + x + y * (cube_width * cube_height);
+    return cube_width_num_cells * y + x + y * (cube_width_num_cells * cube_height_num_cells);
 }
 
 
