@@ -14,6 +14,17 @@ inline float clip(const float& n, const float& lower, const float& upper)
 {
     return glm::max(lower, glm::min(n, upper));
 }
+float ver[8][3] = 
+{
+    {-2.0,-2.0,2.0},
+    {-2.0,2.0,2.0},
+    {2.0,2.0,2.0},
+    {2.0,-2.0,2.0},
+    {-2.0,-2.0,-2.0},
+    {-2.0,2.0,-2.0},
+    {2.0,2.0,-2.0},
+    {2.0,-2.0,-2.0},
+};
 
 float theta = M_PI/8;
 float phi = -M_PI/8+M_PI_2;
@@ -33,6 +44,24 @@ void display(void);
 
 void reshape(int width, int height);
 
+void quad(int a,int b,int c,int d)
+{
+    glBegin(GL_QUADS);
+    glVertex3fv(ver[a]);
+    glVertex3fv(ver[b]);
+    glVertex3fv(ver[c]);
+    glVertex3fv(ver[d]);
+    glEnd();
+}
+void cube(){
+    quad(0,3,2,1);
+    quad(2,3,7,6);
+    quad(0,4,7,3);
+    quad(1,2,6,5);
+    quad(4,5,6,7);
+    quad(0,1,5,4);
+
+}
 void idle(void)
 {
     particles.step();
@@ -103,9 +132,11 @@ void display(void)
     gluLookAt(dist*sin(phi)*cos(theta), dist*cos(phi), dist*sin(phi)*sin(theta),
             0, 0, 0, 
             0, 1, 0);
-    
+    glEnable(GL_DEPTH_TEST);
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    cube();
+    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     particles.render();
-
     glutSwapBuffers();
 }
 

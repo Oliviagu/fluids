@@ -82,6 +82,7 @@ void Particles::step() //simulation loop
             calcDeltaP(par);
             par.newp += par.deltap;
             //collisions
+            calcCollision(par);
 
         }
         iter++;
@@ -96,6 +97,7 @@ void Particles::step() //simulation loop
         //update position
         par.p = par.newp;
     }
+    printf("FRAME\n");
 
 }
 
@@ -118,9 +120,9 @@ void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_i
 
 int Particles::findCellId(glm::dvec3 position)
 {
-    int x = position.x;
-    int y = position.y;
-    int z = position.z;
+    int x = position.x + 2;
+    int y = position.y + 2;
+    int z = position.z + 2;
     if (x < 0 or x >= cube_width_num_cells) {
       return -1;
     }
@@ -208,7 +210,6 @@ void Particles::calcDeltaP(Particle &par)
 {
   double sum = 0;
   glm::vec3 deltaP = glm::vec3(0,0,0);
-  //findNeighbors(par);
   for(Particle *other_particle : par.neighbors) {
     double new_lambda = other_particle->lambda + par.lambda;
     deltaP += calcSpiky(par.p - other_particle->p, kernel_size) * new_lambda/(1.0/rest_density);
@@ -217,6 +218,29 @@ void Particles::calcDeltaP(Particle &par)
   }
   double densityConstant  = (1.0/rest_density); 
   par.deltap =  deltaP;
+}
+
+void Particles::calcCollision(Particle &par){
+    glm::dvec3 position = par.deltap + par.p;
+    if (position.x > 2.0){
+        position.x = 2.0;
+    }
+    if (position.y > 2.0){
+        position.y = 2.0;
+    }
+    if (position.z > 2.0){
+        position.z = 2.0;
+    }
+    if (position.x < -2.0){
+        position.x = -2.0;
+    }
+    if (position.y < -2.0){
+        position.y = -2.0;
+    }
+    if (position.z < -2.0){
+        position.z = -2.0;
+    }
+    par.newp = position;
 }
 
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
@@ -271,7 +295,7 @@ void Particles::render() const
     
     for(const Particle &par : particles)
     {    
-        
+        printf("particle x : %f , y: %f, z : %f \n", par.p.x, par.p.y, par.p.z); 
         glPushMatrix();
         glTranslatef(par.p.x, par.p.y, par.p.z);
         glutSolidSphere(radius, 10, 10);
