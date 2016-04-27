@@ -41,6 +41,7 @@ Particles::Particles(int cube_width, int cube_length, int cube_height)
             {
                 Particle par;
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
+                par.neighbors = {&par};
                 particles.push_back(par);
             }
         }
@@ -104,7 +105,7 @@ glm::dvec3 Particles::extForce(glm::dvec3 position)
 
 void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_id_map) {  
     for (Particle &par : particles) {
-        par.cellId = findCellId(par);
+        par.cellId = findCellId(par.p);
         if (cell_id_map.find(par.cellId) != cell_id_map.end()) {
             cell_id_map.insert(std::pair<int, std::vector<Particle *>>(par.cellId, std::vector<Particle *> ()));
         }
@@ -112,16 +113,37 @@ void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_i
     }
 }
 
-int Particles::findCellId(Particle &par)
+int Particles::findCellId(glm::dvec3 position)
 {
-    return 0;
+    if (position.x < 0 or position.x >= cube_width) {
+      return -1;
+    }
+    if (position.y < 0 or position.y >= cube_height) {
+      return -1;
+    }
+    if (position.z < 0 or position.z >= cube_length) {
+      return -1;
+    }
+    return cube_width * position.y + position.x + position.y * (cube_width * cube_height);
 }
 
 
 void Particles::findNeighbors(Particle &par, std::map<int, std::vector<Particle *>>  &cell_id_map)
 //calculate neighbors and update par's neighbors
 {
-
+  //par.neighbor already has self in the initialization
+  for (float x = -1; x <= 1; x += 1) {
+    for (float y = -1; y <= 1; y += 1) {
+      for (float z = -1; z <= 1; z += 1) {
+        int neighbor = findCellId(glm::dvec3(par.p.x + x, par.p.y + y, par.p.z + z));
+        if (neighbor != -1) {
+          if (cell_id_map.find(neighbor) != cell_id_map.end()) {
+            par.neighbors.insert(par.neighbors.end(), cell_id_map[neighbor].begin(), cell_id_map[neighbor].end());
+          }
+        }
+      }
+    }
+  }
 }
 
 void Particles::calcLambda(Particle &par)
@@ -130,8 +152,8 @@ void Particles::calcLambda(Particle &par)
     //calculate Ci = pi/rest_density - 1
     float Ci;
     float pi;
-    for (Particle &neighbor : par.neighbors) {
-        pi += calcPoly(par.p - neighbor.p, kernel_size);
+    for (Particle * neighbor : par.neighbors) {
+        pi += calcPoly(par.p - neighbor->p, kernel_size);
     }
     Ci = pi/rest_density - 1;
 
@@ -140,11 +162,11 @@ void Particles::calcLambda(Particle &par)
     double iSum; //pkCi for when k = i
     glm::dvec3 iSumVec;
     float jSum;
-    for (Particle &neighbor : par.neighbors) {
-        iSumVec += calcSpiky(par.p - neighbor.p, kernel_size);
+    for (Particle * neighbor : par.neighbors) {
+        iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
         //TODO with respect to p_k
-        if (&par != &neighbor) {
-            float jSumTemp = (float) (1/rest_density) * -calcSpiky(par.p - neighbor.p, kernel_size).length();
+        if (&par != neighbor) {
+            float jSumTemp = (float) (1/rest_density) * -calcSpiky(par.p - neighbor->p, kernel_size).length();
             jSum += pow(jSumTemp, 2.0);
         }
     }
@@ -180,9 +202,9 @@ void Particles::calcDeltaP(Particle &par)
   double sum = 0;
   glm::vec3 deltaP = glm::vec3(0,0,0);
   //findNeighbors(par);
-  for(Particle &other_particle : par.neighbors) {
-    double new_lambda = other_particle.lambda + par.lambda;
-    deltaP += calcSpiky(par.p - other_particle.p, kernel_size) * new_lambda/(1.0/rest_density);
+  for(Particle *other_particle : par.neighbors) {
+    double new_lambda = other_particle->lambda + par.lambda;
+    deltaP += calcSpiky(par.p - other_particle->p, kernel_size) * new_lambda/(1.0/rest_density);
 
     
   }
@@ -199,9 +221,9 @@ void Particles::calcVorticity(Particle &par)
 //calculate lambda and update par's lambda
 {
     glm::dvec3 vorticity = glm::dvec3(0.0, 0.0, 0.0);
-    for (Particle &neighbor : par.neighbors) {
+    for (Particle *neighbor : par.neighbors) {
         //TODO calcSpiky with respect to neighbor
-        vorticity += cross((neighbor.v - par.v), calcSpiky(par.p - neighbor.p, kernel_size));
+        vorticity += cross((neighbor->v - par.v), calcSpiky(par.p - neighbor->p, kernel_size));
     }
     glm::dvec3 gradient_vorticity = pow(pow(vorticity.x, 2) + pow(vorticity.y, 2) + pow(vorticity.z, 2), -0.5) * vorticity;
     glm::dvec3 N = gradient_vorticity * (1.0 / (double) gradient_vorticity.length()); 
@@ -212,9 +234,9 @@ void Particles::calcViscosity(Particle &par)
 //calculate lambda and update par's lambda
 {
     glm::dvec3 viscosity = glm::dvec3(0.0, 0.0, 0.0);
-    for (Particle &neighbor : par.neighbors) {
+    for (Particle *neighbor : par.neighbors) {
         //TODO calcSpiky with respect to neighbor
-        viscosity += (neighbor.v - par.v) * calcPoly(par.p - neighbor.p, kernel_size);
+        viscosity += (neighbor->v - par.v) * calcPoly(par.p - neighbor->p, kernel_size);
     }
     par.v += 0.01 * viscosity; 
 }

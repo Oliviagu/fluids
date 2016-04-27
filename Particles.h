@@ -29,7 +29,7 @@ typedef struct Particle
     glm::dvec3 p;
     glm::dvec3 newp;
     glm::dvec3 v;
-    std::vector<Particle> neighbors;
+    std::vector<Particle *> neighbors;
     float lambda; //constraint force
     glm::dvec3 deltap;
     int cellId;
@@ -59,7 +59,7 @@ public:
     void createCellIdList(std::map<int, std::vector<Particle *>>  &cell_id_map);
     void findNeighbors(Particle &par, std::map<int, std::vector<Particle *>>  &cell_id_map);
     void calcLambda(Particle &par);
-    int findCellId(Particle &par);
+    int findCellId(glm::dvec3 position);
     void calcDeltaP(Particle &par);
     void calcVorticity(Particle &par);
     void calcViscosity(Particle &par);
