@@ -97,7 +97,6 @@ void Particles::step() //simulation loop
         //update position
         par.p = par.newp;
     }
-    printf("FRAME\n");
 
 }
 
@@ -221,26 +220,24 @@ void Particles::calcDeltaP(Particle &par)
 }
 
 void Particles::calcCollision(Particle &par){
-    glm::dvec3 position = par.deltap + par.p;
-    if (position.x > 2.0){
-        position.x = 2.0;
+    if (par.newp.x > 2.0){
+        par.newp.x = 2.0;
     }
-    if (position.y > 2.0){
-        position.y = 2.0;
+    if (par.newp.y > 2.0){
+        par.newp.y = 2.0;
     }
-    if (position.z > 2.0){
-        position.z = 2.0;
+    if (par.newp.z > 2.0){
+        par.newp.z = 2.0;
     }
-    if (position.x < -2.0){
-        position.x = -2.0;
+    if (par.newp.x < -2.0){
+        par.newp.x = -2.0;
     }
-    if (position.y < -2.0){
-        position.y = -2.0;
+    if (par.newp.y < -2.0){
+        par.newp.y = -2.0;
     }
-    if (position.z < -2.0){
-        position.z = -2.0;
+    if (par.newp.z < -2.0){
+        par.newp.z = -2.0;
     }
-    par.newp = position;
 }
 
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
@@ -293,6 +290,7 @@ void Particles::render() const
     glColorMaterial(GL_FRONT, GL_AMBIENT);
     glColor3f(0.2, 0.5, 0.8);
     
+    printf("RENDER\n");
     for(const Particle &par : particles)
     {    
         printf("particle x : %f , y: %f, z : %f \n", par.p.x, par.p.y, par.p.z); 
