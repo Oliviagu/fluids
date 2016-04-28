@@ -147,7 +147,7 @@ void Particles::findNeighbors(Particle &par, std::map<int, std::vector<Particle 
   for (int x = -1; x <= 1; x += 1) {
     for (int y = -1; y <= 1; y += 1) {
       for (int z = -1; z <= 1; z += 1) {
-        glm::dvec3 par_cell = glm::dvec3((int) par.p.x / (2 * radius), (int) par.p.y / (2 * radius), (int) par.p.z / (2 * radius));
+        glm::dvec3 par_cell = glm::dvec3((int) par.newp.x / (2 * radius), (int) par.newp.y / (2 * radius), (int) par.newp.z / (2 * radius));
         int neighbor = findCellId(glm::dvec3(par_cell.x + x, par_cell.y + y, par_cell.z + z));
         if (neighbor != -1) {
           if (cell_id_map.find(neighbor) != cell_id_map.end()) {
