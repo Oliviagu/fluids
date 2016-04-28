@@ -113,7 +113,7 @@ glm::dvec3 Particles::extForce(glm::dvec3 position)
 
 void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_id_map) {  
     for (Particle &par : particles) {
-        glm::dvec3 par_cell = glm::dvec3((int) par.p.x / (2 * radius), (int) par.p.y / (2 * radius), (int) par.p.z / (2 * radius));
+        glm::dvec3 par_cell = glm::dvec3((int) par.newp.x / (2 * radius), (int) par.newp.y / (2 * radius), (int) par.newp.z / (2 * radius));
         par.cellId = findCellId(par_cell);
         if (cell_id_map.find(par.cellId) != cell_id_map.end()) {
             cell_id_map.insert(std::pair<int, std::vector<Particle *>>(par.cellId, std::vector<Particle *> ()));
@@ -136,7 +136,7 @@ int Particles::findCellId(glm::dvec3 position)
     if (z < 0 or z >= cube_length_num_cells) {
       return -1;
     }
-    return cube_width_num_cells * y + x + y * (cube_width_num_cells * cube_height_num_cells);
+    return cube_width_num_cells * y + x + z * (cube_width_num_cells * cube_height_num_cells);
 }
 
 
