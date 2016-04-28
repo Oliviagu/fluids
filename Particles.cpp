@@ -61,7 +61,7 @@ double Particles::calcPoly(glm::dvec3 r, float h)
 
 void Particles::step() //simulation loop
 {
-
+    printf("STEP\n");
     for(Particle &par : particles) {
         par.v = par.v + (extForce(par.p) * dt); //apply forces
         par.newp = par.p + (dt * par.v); //predict position
@@ -184,18 +184,22 @@ void Particles::calcLambda(Particle &par)
 
     par.lambda = -(Ci / pkCi);
     //TODO ask Olivia about new interpretation on calcLambda
-//    Particle *orig_par = par;
+    //calculate Ci = pi/rest_density - 1
+//    float Ci;
+//    float pi;
+//    for (Particle * neighbor : par.neighbors) {
+//        pi += calcPoly(par.p - neighbor->p, kernel_size);
+//    }
+//    Ci = pi/rest_density - 1;
 //    double gradient_constraint_neighbors = epsilon;
-//    for (Particle &neighbor : par.neighbors) {
-//        Particle *next_par = neighbor;
+//    for (Particle * neighbor : par.neighbors) {
 //        glm::dvec3 gradient_constraint_fn = glm::dvec3(0.0, 0.0, 0.0);
-//        // &par == &next_par might work too
-//        if (orig_par == next_par) {
-//          for (Particle &next_neighbor : par.neighbors) {
-//            gradient_constraint_fn += calcSpiky(par.p - next_neighbor.p, kernel_size);
+//        if (&par == neighbor) {
+//          for (Particle * next_neighbor : par.neighbors) {
+//            gradient_constraint_fn += calcSpiky(par.p - next_neighbor->p, kernel_size);
 //          }
 //        } else {
-//          gradient_constraint_fn = -1.0 * calcSpiky(par.p - neighbor.p, kernel_size);
+//          gradient_constraint_fn = -1.0 * calcSpiky(par.p - neighbor->p, kernel_size);
 //        }
 //        gradient_constraint_fn = (1.0 / rest_density) * gradient_constraint_fn;
 //        gradient_constraint_neighbors += pow(gradient_constraint_fn.length(), 2.0);
@@ -211,15 +215,15 @@ void Particles::calcDeltaP(Particle &par)
   glm::vec3 deltaP = glm::vec3(0,0,0);
   for(Particle *other_particle : par.neighbors) {
     double new_lambda = other_particle->lambda + par.lambda;
-    deltaP += calcSpiky(par.p - other_particle->p, kernel_size) * new_lambda/(1.0/rest_density);
+    deltaP += calcSpiky(par.p - other_particle->p, kernel_size) * new_lambda * (1.0 / rest_density);
 
     
   }
-  double densityConstant  = (1.0/rest_density); 
   par.deltap =  deltaP;
 }
 
 void Particles::calcCollision(Particle &par){
+  printf("particle x : %f , y: %f, z : %f \n", par.p.x, par.p.y, par.p.z); 
     if (par.newp.x > 2.0){
         par.newp.x = 2.0;
     }
