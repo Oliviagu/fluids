@@ -119,9 +119,9 @@ void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_i
 
 int Particles::findCellId(glm::dvec3 position)
 {
-    int x = position.x + 2;
-    int y = position.y + 2;
-    int z = position.z + 2;
+    int x = position.x + 1;
+    int y = position.y + 1;
+    int z = position.z + 1;
     if (x < 0 or x >= cube_width_num_cells) {
       return -1;
     }
@@ -224,23 +224,23 @@ void Particles::calcDeltaP(Particle &par)
 
 void Particles::calcCollision(Particle &par){
   printf("particle x : %f , y: %f, z : %f \n", par.p.x, par.p.y, par.p.z); 
-    if (par.newp.x > 2.0){
-        par.newp.x = 2.0;
+    if (par.newp.x > 1.0){
+        par.newp.x = 1.0;
     }
-    if (par.newp.y > 2.0){
-        par.newp.y = 2.0;
+    if (par.newp.y > 1.0){
+        par.newp.y = 1.0;
     }
-    if (par.newp.z > 2.0){
-        par.newp.z = 2.0;
+    if (par.newp.z > 1.0){
+        par.newp.z = 1.0;
     }
-    if (par.newp.x < -2.0){
-        par.newp.x = -2.0;
+    if (par.newp.x < -1.0){
+        par.newp.x = -1.0;
     }
-    if (par.newp.y < -2.0){
-        par.newp.y = -2.0;
+    if (par.newp.y < -1.0){
+        par.newp.y = -1.0;
     }
-    if (par.newp.z < -2.0){
-        par.newp.z = -2.0;
+    if (par.newp.z < -1.0){
+        par.newp.z = -1.0;
     }
 }
 
