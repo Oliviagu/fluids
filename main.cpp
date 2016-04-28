@@ -34,9 +34,9 @@ int height = 800;
 int frame = 0;
 const int render_step = 3;
 int mx, my;
-int cube_width = 4;
-int cube_length = 4;
-int cube_height = 4;
+int cube_width = 2;
+int cube_length = 2;
+int cube_height = 2;
 
 Particles particles = Particles(cube_width, cube_length, cube_height);
 

@@ -113,8 +113,11 @@ glm::dvec3 Particles::extForce(glm::dvec3 position)
 
 void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_id_map) {  
     for (Particle &par : particles) {
-        glm::dvec3 par_cell = glm::dvec3((int) par.newp.x / (2 * radius), (int) par.newp.y / (2 * radius), (int) par.newp.z / (2 * radius));
+        printf("create cell Id par.newp x : %f , y : %f, z : %f\n", par.newp.x, par.newp.y, par.newp.z);
+        glm::dvec3 par_cell = glm::dvec3((int) (par.newp.x / (2 * radius)), (int) (par.newp.y / (2 * radius)), (int) (par.newp.z / (2 * radius)));
+        printf("par_cell x : %f , y : %f , z : %f\n", par_cell.x, par_cell.y, par_cell.z);
         par.cellId = findCellId(par_cell);
+        printf("par.cellId %d\n", par.cellId);
         if (cell_id_map.find(par.cellId) != cell_id_map.end()) {
             cell_id_map.insert(std::pair<int, std::vector<Particle *>>(par.cellId, std::vector<Particle *> ()));
         }
@@ -124,16 +127,18 @@ void Particles::createCellIdList(std::map<int, std::vector<Particle *>>  &cell_i
 
 int Particles::findCellId(glm::dvec3 position)
 {
-    int x = position.x + 1;
-    int y = position.y + 1;
-    int z = position.z + 1;
-    if (x < 0 or x >= cube_width_num_cells) {
+    int x = position.x + (cube_width_num_cells / 2);
+    int y = position.y + (cube_height_num_cells / 2);
+    int z = position.z + (cube_length_num_cells / 2);
+    printf("cube dimension width %d height %d length %d\n", cube_width_num_cells, cube_height_num_cells, cube_length_num_cells);
+    printf("findcellId x %d y %d z %d \n", x, y, z);
+    if (x < 0 or x > cube_width_num_cells) {
       return -1;
     }
-    if (y < 0 or y >= cube_height_num_cells) {
+    if (y < 0 or y > cube_height_num_cells) {
       return -1;
     }
-    if (z < 0 or z >= cube_length_num_cells) {
+    if (z < 0 or z > cube_length_num_cells) {
       return -1;
     }
     return cube_width_num_cells * y + x + z * (cube_width_num_cells * cube_height_num_cells);
@@ -147,7 +152,7 @@ void Particles::findNeighbors(Particle &par, std::map<int, std::vector<Particle 
   for (int x = -1; x <= 1; x += 1) {
     for (int y = -1; y <= 1; y += 1) {
       for (int z = -1; z <= 1; z += 1) {
-        glm::dvec3 par_cell = glm::dvec3((int) par.newp.x / (2 * radius), (int) par.newp.y / (2 * radius), (int) par.newp.z / (2 * radius));
+        glm::dvec3 par_cell = glm::dvec3((int) (par.newp.x / (2 * radius)), (int) (par.newp.y / (2 * radius)), (int) (par.newp.z / (2 * radius)));
         int neighbor = findCellId(glm::dvec3(par_cell.x + x, par_cell.y + y, par_cell.z + z));
         if (neighbor != -1) {
           if (cell_id_map.find(neighbor) != cell_id_map.end()) {
@@ -303,6 +308,7 @@ void Particles::render() const
     for(const Particle &par : particles)
     {    
         printf("particle x : %f , y: %f, z : %f \n", par.p.x, par.p.y, par.p.z); 
+        printf("particle num neighbors : %lu \n", par.neighbors.size()); 
         glPushMatrix();
         glTranslatef(par.p.x, par.p.y, par.p.z);
         glutSolidSphere(radius, 10, 10);
