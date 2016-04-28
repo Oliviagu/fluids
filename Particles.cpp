@@ -15,9 +15,9 @@
  
 Particles::Particles(int cube_width, int cube_length, int cube_height) 
 {
-    int nx = 10;
-    int ny = 10;
-    int nz = 10;
+    int nx = 5;
+    int ny = 5;
+    int nz = 5;
     float d = 0.1;
 
     kernel_size = d * 1.4;
@@ -45,7 +45,12 @@ Particles::Particles(int cube_width, int cube_length, int cube_height)
             {
                 Particle par;
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
+                par.newp = par.p;
+                par.v = glm::dvec3(0, 0, 0);
                 par.neighbors = {&par};
+                par.lambda = 0;
+                par.deltap = glm::dvec3(0, 0, 0);
+                par.cellId = -1;
                 particles.push_back(par);
             }
         }
@@ -223,7 +228,7 @@ void Particles::calcDeltaP(Particle &par)
 }
 
 void Particles::calcCollision(Particle &par){
-  printf("particle x : %f , y: %f, z : %f \n", par.p.x, par.p.y, par.p.z); 
+  printf("collsion particle x : %f , y: %f, z : %f \n", par.newp.x, par.newp.y, par.newp.z); 
     if (par.newp.x > 1.0){
         par.newp.x = 1.0;
     }
