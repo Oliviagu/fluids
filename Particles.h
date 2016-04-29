@@ -14,6 +14,7 @@
 #ifndef PARTICLES_H
 #define PARTICLES_H
 
+#include <string>
 #include <glm/glm.hpp>
 #include <vector>
 #include <map> 
@@ -32,16 +33,13 @@ typedef struct Particle
     std::vector<Particle *> neighbors;
     float lambda; //constraint force
     glm::dvec3 deltap;
-    int cellId;
+    int cellId[3];
 
 } Particle;
 
 class Particles {
 public:
-    Particles (int cube_width, int cube_length, int cube_height);
-    int cube_width_num_cells;
-    int cube_length_num_cells;
-    int cube_height_num_cells;
+    Particles(float most_bottom[3], float cube_width, float cube_length, float cube_height);
 	  float kernel_size;
    	float radius;
    	float k;
@@ -52,14 +50,14 @@ public:
    	double rest_density;
     double dt;
 
-    Particles();
     void render() const;
     void step(); // simulate one frame
     glm::dvec3 extForce(glm::dvec3 position);
-    void createCellIdList(std::map<int, std::vector<Particle *>>  &cell_id_map);
-    void findNeighbors(Particle &par, std::map<int, std::vector<Particle *>>  &cell_id_map);
+    void findCellId(Particle &par);
+    std::string createStringCellId(int (&pos) [3]);
+    void createCellIdList(std::map<std::string, std::vector<Particle *>>  &cell_id_map);
+    void findNeighbors(Particle &par, std::map<std::string, std::vector<Particle *>>  &cell_id_map);
     void calcLambda(Particle &par);
-    int findCellId(glm::dvec3 position);
     void calcDeltaP(Particle &par);
     void calcCollision(Particle &par);
     void calcVorticity(Particle &par);

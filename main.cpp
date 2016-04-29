@@ -14,16 +14,22 @@ inline float clip(const float& n, const float& lower, const float& upper)
 {
     return glm::max(lower, glm::min(n, upper));
 }
+
+float cube_width = 2;
+float cube_height = 2;
+float cube_length = 2;
+float most_bottom[] = {-1.0 , -1.0, -1.0};
+
 float ver[8][3] = 
 {
-    {-1.0,-1.0,1.0},
-    {-1.0,1.0,1.0},
-    {1.0,1.0,1.0},
-    {1.0,-1.0,1.0},
-    {-1.0,-1.0,-1.0},
-    {-1.0,1.0,-1.0},
-    {1.0,1.0,-1.0},
-    {1.0,-1.0,-1.0},
+    {most_bottom[0],most_bottom[1],most_bottom[2] + cube_length},
+    {most_bottom[0],most_bottom[1] + cube_height,most_bottom[2] + cube_length},
+    {most_bottom[0] + cube_width,most_bottom[1] + cube_height,most_bottom[2] + cube_length},
+    {most_bottom[0] + cube_width,most_bottom[1],most_bottom[2] + cube_length},
+    {most_bottom[0],most_bottom[1],most_bottom[2]},
+    {most_bottom[0],most_bottom[1] + cube_height,most_bottom[2]},
+    {most_bottom[0] + cube_width,most_bottom[1] + cube_height,most_bottom[2]},
+    {most_bottom[0] + cube_width,most_bottom[1],most_bottom[2]},
 };
 
 float theta = M_PI/8;
@@ -34,11 +40,8 @@ int height = 800;
 int frame = 0;
 const int render_step = 3;
 int mx, my;
-int cube_width = 2;
-int cube_length = 2;
-int cube_height = 2;
 
-Particles particles = Particles(cube_width, cube_length, cube_height);
+Particles particles = Particles(most_bottom, cube_width, cube_length, cube_height);
 
 void display(void);
 
