@@ -15,6 +15,12 @@
  
 Particles::Particles(float most_bottom[3], float cube_width, float cube_length, float cube_height) 
 {
+    bottom_pt[0] = most_bottom[0];
+    bottom_pt[1] = most_bottom[1];
+    bottom_pt[2] = most_bottom[2];
+    box_width = cube_width;
+    box_length = cube_length;
+    box_height = cube_height;
     int nx = 5;
     int ny = 5;
     int nz = 5;
@@ -225,23 +231,24 @@ void Particles::calcDeltaP(Particle &par)
 
 void Particles::calcCollision(Particle &par){
   printf("collsion particle x : %f , y: %f, z : %f \n", par.newp.x, par.newp.y, par.newp.z); 
-    if (par.newp.x > 1.0){
-        par.newp.x = 1.0;
+    if (par.newp.x > bottom_pt[0] + box_width){
+        par.newp.x = bottom_pt[0] + box_width;
     }
-    if (par.newp.y > 1.0){
-        par.newp.y = 1.0;
+    if (par.newp.y > bottom_pt[1] + box_height){
+        par.newp.y = bottom_pt[1] + box_height;
     }
-    if (par.newp.z > 1.0){
-        par.newp.z = 1.0;
+    if (par.newp.z > bottom_pt[2] + box_length){
+        par.newp.z = bottom_pt[2] + box_length;
     }
-    if (par.newp.x < -1.0){
-        par.newp.x = -1.0;
+
+    if (par.newp.x < bottom_pt[0]){
+        par.newp.x = bottom_pt[0];
     }
-    if (par.newp.y < -1.0){
-        par.newp.y = -1.0;
+    if (par.newp.y < bottom_pt[1]){
+        par.newp.y = bottom_pt[1];
     }
-    if (par.newp.z < -1.0){
-        par.newp.z = -1.0;
+    if (par.newp.z < bottom_pt[2]){
+        par.newp.z = bottom_pt[2];
     }
 }
 

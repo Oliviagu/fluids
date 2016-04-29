@@ -49,6 +49,10 @@ public:
    	int nIters;
    	double rest_density;
     double dt;
+    float bottom_pt[3];
+    float box_width;
+    float box_length;
+    float box_height;
 
     void render() const;
     void step(); // simulate one frame
