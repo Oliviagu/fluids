@@ -63,6 +63,7 @@ public:
     void findNeighbors(Particle &par, std::map<std::string, std::vector<Particle *>>  &cell_id_map);
     void calcLambda(Particle &par);
     void calcDeltaP(Particle &par);
+    double length(glm::dvec3 p);
     void calcCollision(Particle &par);
     void calcVorticity(Particle &par);
     void calcViscosity(Particle &par);

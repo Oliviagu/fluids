@@ -21,9 +21,9 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     box_width = cube_width;
     box_length = cube_length;
     box_height = cube_height;
-    int nx = 5;
-    int ny = 5;
-    int nz = 5;
+    int nx = 10;
+    int ny = 10;
+    int nz = 10;
     float d = 0.1;
 
     kernel_size = d * 1.4;
@@ -62,14 +62,20 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
 //Kernel Functions
 double Particles::calcPoly(glm::dvec3 r, float h) 
 {
-    double temp = pow(h, 2.0) - pow(r.length(), 2.0);
-    return (315 / (64 * M_PI * pow(h, 9.0))) * pow(temp, 3.0);
+    ////printf("particle x : %f , y: %f, z : %f \n",r.x,r.y, r.z); 
+    ////printf("length %f \n", length); 
+    double temp = pow(h, 2.0) - pow(length(r), 2.0);
+    ////printf("temp %f \n", temp); 
+    double value =  (315 / (64 * M_PI * pow(h, 9.0))) * pow(temp, 3.0);
+    ////printf("value is %f and temp is %f \n", value, temp);
+    return value;
 }
 
 void Particles::step() //simulation loop
 {
     printf("STEP\n");
     for(Particle &par : particles) {
+        par.neighbors = {&par};
         par.v = par.v + (extForce(par.p) * dt); //apply forces
         par.newp = par.p + (dt * par.v); //predict position
     }
@@ -87,7 +93,16 @@ void Particles::step() //simulation loop
         for(Particle &par : particles) {
             //calculate deltap
             calcDeltaP(par);
+
+            if(std::isnan(par.newp.x) || std::isnan(par.newp.y) || std::isnan(par.newp.z)){
+                //printf("???? collisions?");
+                exit(1);
+            }
             par.newp += par.deltap;
+            if(std::isnan(par.newp.x)|| std::isnan(par.newp.y) || std::isnan(par.newp.z)){
+                //printf("???? collisions from adding?");
+                exit(1);
+            }
             //collisions
             calcCollision(par);
 
@@ -110,15 +125,15 @@ void Particles::step() //simulation loop
 glm::dvec3 Particles::extForce(glm::dvec3 position) 
 //find forces and return extForce at position
 {
-    return glm::dvec3(0, 0, -9.81);
+    return glm::dvec3(0, -9.81, 0);
 }
 
 void Particles::createCellIdList(std::map<std::string, std::vector<Particle *>>  &cell_id_map) {  
     for (Particle &par : particles) {
-//        printf("create cell Id par.newp x : %f , y : %f, z : %f\n", par.newp.x, par.newp.y, par.newp.z);
-//        printf("par_cell x : %f , y : %f , z : %f\n", par_cell.x, par_cell.y, par_cell.z);
+//        //printf("create cell Id par.newp x : %f , y : %f, z : %f\n", par.newp.x, par.newp.y, par.newp.z);
+//        //printf("par_cell x : %f , y : %f , z : %f\n", par_cell.x, par_cell.y, par_cell.z);
         findCellId(par);
-//        printf("par.cellId %d\n", par.cellId);
+//        //printf("par.cellId %d\n", par.cellId);
         std::string id = createStringCellId(par.cellId);
         if (cell_id_map.find(id) == cell_id_map.end()) {
             //not found
@@ -166,27 +181,34 @@ void Particles::calcLambda(Particle &par)
 {
     //calculate Ci = pi/rest_density - 1
     float Ci;
-    float pi;
+    float pi = 0;
     for (Particle * neighbor : par.neighbors) {
+        glm::dvec3 extra = par.p - neighbor->p;
+        if(std::isnan(extra.x)){
+            //printf("????");
+            exit(1);
+        }
         pi += calcPoly(par.p - neighbor->p, kernel_size);
     }
     Ci = pi/rest_density - 1;
 
+    //printf("CI: %f \n", Ci); 
     //calculate pkCi
     float pkCi;
     double iSum; //pkCi for when k = i
-    glm::dvec3 iSumVec;
-    float jSum;
+    glm::dvec3 iSumVec(0,0,0);
+    float jSum = 0;
     for (Particle * neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
         //TODO with respect to p_k
         if (&par != neighbor) {
-            float jSumTemp = (float) (1/rest_density) * -calcSpiky(par.p - neighbor->p, kernel_size).length();
+            double l = length(calcSpiky(par.p - neighbor->p, kernel_size));
+            float jSumTemp = (float) (1/rest_density) * -l;
             jSum += pow(jSumTemp, 2.0);
         }
     }
     iSumVec = (1/rest_density) * iSumVec;
-    iSum += pow(iSumVec.length(), 2.0);
+    iSum += pow(length(iSumVec), 2.0);
     pkCi = iSum + jSum + epsilon;
 
     par.lambda = -(Ci / pkCi);
@@ -219,6 +241,7 @@ void Particles::calcDeltaP(Particle &par)
 //calculate lambda and update par's lambda
 {
   double sum = 0;
+
   glm::vec3 deltaP = glm::vec3(0,0,0);
   for(Particle *other_particle : par.neighbors) {
     double new_lambda = other_particle->lambda + par.lambda;
@@ -226,11 +249,15 @@ void Particles::calcDeltaP(Particle &par)
 
     
   }
+  if(std::isnan(par.newp.x)|| std::isnan(par.newp.y) || std::isnan(par.newp.z)){
+    //printf("???? delta p");
+    exit(1);
+  }
   par.deltap =  deltaP;
 }
 
 void Particles::calcCollision(Particle &par){
-  printf("collsion particle x : %f , y: %f, z : %f \n", par.newp.x, par.newp.y, par.newp.z); 
+  //printf("collsion particle x : %f , y: %f, z : %f \n", par.newp.x, par.newp.y, par.newp.z); 
     if (par.newp.x > bottom_pt[0] + box_width){
         par.newp.x = bottom_pt[0] + box_width;
     }
@@ -250,10 +277,16 @@ void Particles::calcCollision(Particle &par){
     if (par.newp.z < bottom_pt[2]){
         par.newp.z = bottom_pt[2];
     }
+
+    ////printf("collsion particle x : %f , y: %f, z : %f \n", par.newp.x, par.newp.y, par.newp.z); 
 }
 
+double Particles::length(glm::dvec3 p) {
+  return sqrt(pow(p.x,2) + pow(p.y,2) + pow(p.z,2));
+}
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
-  double constant =  45/M_PI * pow(h,6) * pow(h - p.length(),2)/ p.length() ;
+
+  double constant =  45/M_PI * pow(h,6) * pow(h - length(p),2)/ length(p) ;
   return p * constant;
 }
 
@@ -266,7 +299,7 @@ void Particles::calcVorticity(Particle &par)
         vorticity += cross((neighbor->v - par.v), calcSpiky(par.p - neighbor->p, kernel_size));
     }
     glm::dvec3 gradient_vorticity = pow(pow(vorticity.x, 2) + pow(vorticity.y, 2) + pow(vorticity.z, 2), -0.5) * vorticity;
-    glm::dvec3 N = gradient_vorticity * (1.0 / (double) gradient_vorticity.length()); 
+    glm::dvec3 N = gradient_vorticity * (1.0 / (double) length(gradient_vorticity)); 
     glm::dvec3 f_vorticity = epsilon * cross(N, vorticity);
     par.v += (f_vorticity * dt); //apply forces
 }
@@ -302,11 +335,11 @@ void Particles::render() const
     glColorMaterial(GL_FRONT, GL_AMBIENT);
     glColor3f(0.2, 0.5, 0.8);
     
-    printf("RENDER\n");
+    //printf("RENDER\n");
     for(const Particle &par : particles)
     {    
-        printf("particle x : %f , y: %f, z : %f \n", par.p.x, par.p.y, par.p.z); 
-        printf("particle num neighbors : %lu \n", par.neighbors.size()); 
+        ////printf("particle x : %f , y: %f, z : %f \n", par.p.x, par.p.y, par.p.z); 
+        ////printf("particle num neighbors : %lu \n", par.neighbors.size()); 
         glPushMatrix();
         glTranslatef(par.p.x, par.p.y, par.p.z);
         glutSolidSphere(radius, 10, 10);
