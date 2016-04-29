@@ -64,6 +64,7 @@ void Particles::step() //simulation loop
 {
     printf("STEP\n");
     for(Particle &par : particles) {
+        par.neighbors = {&par};
         par.v = par.v + (extForce(par.p) * dt); //apply forces
         par.newp = par.p + (dt * par.v); //predict position
     }
@@ -159,18 +160,18 @@ void Particles::calcLambda(Particle &par)
 //calculate lambda and update par's lambda
 {
     //calculate Ci = pi/rest_density - 1
-    float Ci;
-    float pi;
+    float Ci = 0.;
+    float pi = 0.;
     for (Particle * neighbor : par.neighbors) {
         pi += calcPoly(par.p - neighbor->p, kernel_size);
     }
     Ci = pi/rest_density - 1;
 
     //calculate pkCi
-    float pkCi;
-    double iSum; //pkCi for when k = i
-    glm::dvec3 iSumVec;
-    float jSum;
+    float pkCi = 0.;
+    double iSum = 0; //pkCi for when k = i
+    glm::dvec3 iSumVec = glm::dvec3(0.,0.,0.);
+    float jSum = 0.;
     for (Particle * neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
         //TODO with respect to p_k
@@ -243,6 +244,7 @@ void Particles::calcCollision(Particle &par){
     if (par.newp.z < -1.0){
         par.newp.z = -1.0;
     }
+    printf("post collsion particle x : %f , y: %f, z : %f \n", par.newp.x, par.newp.y, par.newp.z); 
 }
 
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
