@@ -49,6 +49,10 @@ public:
    	int nIters;
    	double rest_density;
     double dt;
+    float bottom_pt[3];
+    float box_width;
+    float box_length;
+    float box_height;
 
     void render() const;
     void step(); // simulate one frame
@@ -59,6 +63,7 @@ public:
     void findNeighbors(Particle &par, std::map<std::string, std::vector<Particle *>>  &cell_id_map);
     void calcLambda(Particle &par);
     void calcDeltaP(Particle &par);
+    double dvec3_length(glm::dvec3 p);
     void calcCollision(Particle &par);
     void calcVorticity(Particle &par);
     void calcViscosity(Particle &par);
