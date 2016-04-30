@@ -62,9 +62,10 @@ double Particles::calcPoly(glm::dvec3 r, float h)
     double temp = pow(h, 2.0) - pow(length, 2.0);
     //printf("temp %f \n", temp); 
     double value =  (315 / (64 * M_PI * pow(h, 9.0))) * pow(temp, 3.0);
-    printf("value is %f and temp is %f \n", value, temp);
+    // printf("value is %f and temp is %f \n", value, temp);
     return value;
 }
+
 
 void Particles::step() //simulation loop
 {
@@ -175,9 +176,9 @@ void Particles::calcLambda(Particle &par)
 //calculate lambda and update par's lambda
 {
     //calculate Ci = pi/rest_density - 1
-
-    float Ci;
-    float pi = 0;
+    printf("pre lambda %f\n", par.lambda);
+    float Ci = 0.0;
+    float pi = 0.0;
     for (Particle * neighbor : par.neighbors) {
         glm::dvec3 extra = par.p - neighbor->p;
         if(std::isnan(extra.x)){
@@ -188,12 +189,12 @@ void Particles::calcLambda(Particle &par)
     }
     Ci = pi/rest_density - 1;
 
-    printf("CI: %f \n", Ci); 
+    //printf("CI: %f \n", Ci); 
     //calculate pkCi
-    float pkCi;
-    double iSum; //pkCi for when k = i
+    float pkCi = 0.0;
+    double iSum = 0.0; //pkCi for when k = i
     glm::dvec3 iSumVec(0,0,0);
-    float jSum = 0;
+    float jSum = 0.0;
     for (Particle * neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
         //TODO with respect to p_k
@@ -207,6 +208,7 @@ void Particles::calcLambda(Particle &par)
     pkCi = iSum + jSum + epsilon;
 
     par.lambda = -(Ci / pkCi);
+    printf("post lambda %f\n", par.lambda);
     //TODO ask Olivia about new interpretation on calcLambda
     //calculate Ci = pi/rest_density - 1
 //    float Ci;
