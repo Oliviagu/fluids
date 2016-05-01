@@ -50,7 +50,7 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
                 par.newp = par.p;
                 par.v = glm::dvec3(0, 0, 0);
-                par.neighbors = {&par};
+                par.neighbors = {};
                 par.lambda = 0;
                 par.deltap = glm::dvec3(0, 0, 0);
                 particles.push_back(par);
@@ -70,7 +70,7 @@ double Particles::calcPoly(glm::dvec3 r, float h)
 void Particles::step() //simulation loop
 {
     for(Particle &par : particles) {
-        par.neighbors = {&par};
+        par.neighbors = {};
         par.v = par.v + (extForce(par.p) * dt); //apply forces
         par.newp = par.p + (dt * par.v); //predict position
     }
@@ -80,6 +80,7 @@ void Particles::step() //simulation loop
         //findNeighbors will use par.newp and update par.neighbors
         findNeighbors(par, cell_id_list);
     }
+
     int iter = 0;
     while (iter < nIters) {
         for(Particle &par : particles) {
@@ -170,13 +171,16 @@ void Particles::calcLambda(Particle &par)
         glm::dvec3 extra = par.p - neighbor->p;
         pi += calcPoly(par.p - neighbor->p, kernel_size);
     }
+
     Ci = pi/rest_density - 1;
 
+    printf("CI: %f \n", Ci); 
     //calculate pkCi
     float pkCi = 0;
     double iSum = 0; //pkCi for when k = i
     glm::dvec3 iSumVec(0,0,0);
     float jSum = 0;
+    int ownParticle = 0;
     for (Particle * neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
         //TODO with respect to p_k
@@ -185,7 +189,13 @@ void Particles::calcLambda(Particle &par)
             float jSumTemp = (float) (1/rest_density) * -1.0 * l;
             jSum += pow(jSumTemp, 2.0);
         }
+        else{
+            ownParticle += 1;
+        }
+
     }
+
+    printf("Own particle: %d \n", ownParticle); 
     iSumVec = (1/rest_density) * iSumVec;
     iSum += pow(dvec3_length(iSumVec), 2.0);
     pkCi = iSum + jSum + epsilon;
