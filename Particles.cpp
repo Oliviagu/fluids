@@ -50,7 +50,7 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
                 par.newp = par.p;
                 par.v = glm::dvec3(0, 0, 0);
-                par.neighbors = {&par};
+                par.neighbors = {};
                 par.lambda = 0;
                 par.deltap = glm::dvec3(0, 0, 0);
                 particles.push_back(par);
@@ -70,7 +70,7 @@ double Particles::calcPoly(glm::dvec3 r, float h)
 void Particles::step() //simulation loop
 {
     for(Particle &par : particles) {
-        par.neighbors = {&par};
+        par.neighbors = {};
         par.v = par.v + (extForce(par.p) * dt); //apply forces
         par.newp = par.p + (dt * par.v); //predict position
     }
@@ -145,7 +145,6 @@ std::string Particles::createStringCellId(int (&pos) [3])
 void Particles::findNeighbors(Particle &par, std::map<std::string, std::vector<Particle *>>  &cell_id_map)
 //calculate neighbors and update par's neighbors
 {
-  //par.neighbor already has self in the initialization
   for (int x = -1; x <= 1; x += 1) {
     for (int y = -1; y <= 1; y += 1) {
       for (int z = -1; z <= 1; z += 1) {
@@ -153,66 +152,73 @@ void Particles::findNeighbors(Particle &par, std::map<std::string, std::vector<P
         std::string id = createStringCellId(neighbor);
         if (cell_id_map.find(id) != cell_id_map.end()) {
           //found
-          par.neighbors.insert(par.neighbors.end(), cell_id_map[id].begin(), cell_id_map[id].end());
+            par.neighbors.insert(par.neighbors.end(), cell_id_map[id].begin(), cell_id_map[id].end());
+//          for (Particle * n : cell_id_map[id]) {
+//            glm::dvec3 npos = n->newp;
+//            if (dvec3_length(npos - par.newp) <= kernel_size) {
+//              par.neighbors.insert(par.neighbors.end(), n);
+//            }
+//          }
         }
       }
     }
   }
+  printf("%lu\n", par.neighbors.size());
 }
 
 void Particles::calcLambda(Particle &par)
 //calculate lambda and update par's lambda
 {
-    //calculate Ci = pi/rest_density - 1
-    float Ci = 0;
-    float pi = 0;
-    for (Particle * neighbor : par.neighbors) {
-        glm::dvec3 extra = par.p - neighbor->p;
-        pi += calcPoly(par.p - neighbor->p, kernel_size);
-    }
-    Ci = pi/rest_density - 1;
-
-    //calculate pkCi
-    float pkCi = 0;
-    double iSum = 0; //pkCi for when k = i
-    glm::dvec3 iSumVec(0,0,0);
-    float jSum = 0;
-    for (Particle * neighbor : par.neighbors) {
-        iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
-        //TODO with respect to p_k
-        if (&par != neighbor) {
-            double l = dvec3_length(calcSpiky(par.p - neighbor->p, kernel_size));
-            float jSumTemp = (float) (1/rest_density) * -1.0 * l;
-            jSum += pow(jSumTemp, 2.0);
-        }
-    }
-    iSumVec = (1/rest_density) * iSumVec;
-    iSum += pow(dvec3_length(iSumVec), 2.0);
-    pkCi = iSum + jSum + epsilon;
-
-    par.lambda = -(Ci / pkCi);
-    //TODO ask Olivia about new interpretation on calcLambda
-    //calculate Ci = pi/rest_density - 1
-//    float Ci = 0.0;
-//    float pi = 0.0;
+//    //calculate Ci = pi/rest_density - 1
+//    float Ci = 0;
+//    float pi = 0;
 //    for (Particle * neighbor : par.neighbors) {
+//        glm::dvec3 extra = par.p - neighbor->p;
 //        pi += calcPoly(par.p - neighbor->p, kernel_size);
 //    }
 //    Ci = pi/rest_density - 1;
-//    double gradient_constraint_neighbors = epsilon;
+//
+//    //calculate pkCi
+//    float pkCi = 0;
+//    double iSum = 0; //pkCi for when k = i
+//    glm::dvec3 iSumVec(0,0,0);
+//    float jSum = 0;
 //    for (Particle * neighbor : par.neighbors) {
-//        glm::dvec3 gradient_constraint_fn = glm::dvec3(0.0, 0.0, 0.0);
-//        if (&par == neighbor) {
-//          for (Particle * next_neighbor : par.neighbors) {
-//            gradient_constraint_fn += calcSpiky(par.p - next_neighbor->p, kernel_size);
-//          }
-//        } else {
-//          gradient_constraint_fn = -1.0 * calcSpiky(par.p - neighbor->p, kernel_size);
+//        iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
+//        //TODO with respect to p_k
+//        if (&par != neighbor) {
+//            double l = dvec3_length(calcSpiky(par.p - neighbor->p, kernel_size));
+//            float jSumTemp = (float) (1/rest_density) * -1.0 * l;
+//            jSum += pow(jSumTemp, 2.0);
 //        }
-//        gradient_constraint_fn = (1.0 / rest_density) * gradient_constraint_fn;
-//        gradient_constraint_neighbors += pow(dvec3_length(gradient_constraint_fn), 2.0);
 //    }
-//    par.lambda = -1.0 * (Ci / gradient_constraint_neighbors);
+//    iSumVec = (1/rest_density) * iSumVec;
+//    iSum += pow(dvec3_length(iSumVec), 2.0);
+//    pkCi = iSum + jSum + epsilon;
+//
+//    par.lambda = -(Ci / pkCi);
+    //TODO ask Olivia about new interpretation on calcLambda
+    //calculate Ci = pi/rest_density - 1
+    float Ci = 0.0;
+    float pi = 0.0;
+    for (Particle * neighbor : par.neighbors) {
+      pi += calcPoly(par.newp - neighbor->newp, kernel_size);
+    }
+    Ci = pi/rest_density - 1;
+    double gradient_constraint_neighbors = epsilon;
+    for (Particle * neighbor : par.neighbors) {
+        glm::dvec3 gradient_constraint_fn = glm::dvec3(0.0, 0.0, 0.0);
+        if (&par == neighbor) {
+          for (Particle * next_neighbor : par.neighbors) {
+            gradient_constraint_fn += calcSpiky(par.newp - next_neighbor->newp, kernel_size);
+          }
+        } else {
+          gradient_constraint_fn = -1.0 * calcSpiky(par.newp - neighbor->newp, kernel_size);
+        }
+        gradient_constraint_fn = (1.0 / rest_density) * gradient_constraint_fn;
+        gradient_constraint_neighbors += pow(dvec3_length(gradient_constraint_fn), 2.0);
+    }
+    par.lambda = -1.0 * (Ci / gradient_constraint_neighbors);
 
 }
 
@@ -223,32 +229,52 @@ void Particles::calcDeltaP(Particle &par)
   glm::vec3 deltaP = glm::vec3(0,0,0);
   for(Particle *other_particle : par.neighbors) {
     double new_lambda = other_particle->lambda + par.lambda;
-    deltaP += calcSpiky(par.p - other_particle->p, kernel_size) * new_lambda * (1.0 / rest_density);
+    deltaP += calcSpiky(par.newp - other_particle->newp, kernel_size) * new_lambda ;
 
     
   }
-  par.deltap =  deltaP;
+  par.deltap =  deltaP * (float) (1.0 / rest_density);
 }
 
-void Particles::calcCollision(Particle &par){
+
+void Particles::calcCollision(Particle &par) {
+    float col = 0.0014f;
     if (par.newp.x > bottom_pt[0] + box_width){
-        par.newp.x = bottom_pt[0] + box_width;
+        par.newp.x = bottom_pt[0] + box_width - col;
+        glm::dvec3 normal = glm::dvec3(-1,0,0);
+        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+        par.newp.x = par.newp.x + dt * reflectedDir.x;
     }
     if (par.newp.y > bottom_pt[1] + box_height){
-        par.newp.y = bottom_pt[1] + box_height;
+        par.newp.y = bottom_pt[1] + box_height - col;
+        glm::dvec3 normal = glm::dvec3(0,-1,0);
+        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+        par.newp.y = par.newp.y + dt * reflectedDir.y;
     }
     if (par.newp.z > bottom_pt[2] + box_length){
-        par.newp.z = bottom_pt[2] + box_length;
+        par.newp.z = bottom_pt[2] + box_length - col;
+        glm::dvec3 normal = glm::dvec3(0,0,-1);
+        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+        par.newp.z = par.newp.z + dt * reflectedDir.z;
     }
 
     if (par.newp.x < bottom_pt[0]){
-        par.newp.x = bottom_pt[0];
+        par.newp.x = bottom_pt[0] + col;
+        glm::dvec3 normal = glm::dvec3(1,0,0);
+        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+        par.newp.x = par.newp.x + dt * reflectedDir.x;
     }
     if (par.newp.y < bottom_pt[1]){
-        par.newp.y = bottom_pt[1];
+        par.newp.y = bottom_pt[1] + col;
+        glm::dvec3 normal = glm::dvec3(0,1,0);
+        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+        par.newp.y = par.newp.y + dt * reflectedDir.y;
     }
     if (par.newp.z < bottom_pt[2]){
-        par.newp.z = bottom_pt[2];
+        par.newp.z = bottom_pt[2] + col;
+        glm::dvec3 normal = glm::dvec3(0,0,1);
+        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+        par.newp.z = par.newp.z + dt * reflectedDir.z;
     }
 
 }
