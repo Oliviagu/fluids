@@ -36,7 +36,7 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     n = 4;
     q = 0.2;
     epsilon = 104;
-    nIters = 10;
+    nIters = 50;
     rest_density = 1 / (d * d *d);
     dt = 0.01;
 
@@ -112,6 +112,7 @@ void Particles::step() //simulation loop
 glm::dvec3 Particles::extForce(glm::dvec3 position) 
 //find forces and return extForce at position
 {
+//    return glm::dvec3(0, 0, 0);
     return glm::dvec3(0, -9.81, 0);
 }
 
@@ -163,7 +164,6 @@ void Particles::findNeighbors(Particle &par, std::map<std::string, std::vector<P
       }
     }
   }
-  printf("%lu\n", par.neighbors.size());
 }
 
 void Particles::calcLambda(Particle &par)
@@ -241,40 +241,40 @@ void Particles::calcCollision(Particle &par) {
     float col = 0.0014f;
     if (par.newp.x > bottom_pt[0] + box_width){
         par.newp.x = bottom_pt[0] + box_width - col;
-        glm::dvec3 normal = glm::dvec3(-1,0,0);
-        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-        par.newp.x = par.newp.x + dt * reflectedDir.x;
+//        glm::dvec3 normal = glm::dvec3(-1,0,0);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.x = par.newp.x + dt * reflectedDir.x;
     }
     if (par.newp.y > bottom_pt[1] + box_height){
         par.newp.y = bottom_pt[1] + box_height - col;
-        glm::dvec3 normal = glm::dvec3(0,-1,0);
-        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-        par.newp.y = par.newp.y + dt * reflectedDir.y;
+//        glm::dvec3 normal = glm::dvec3(0,-1,0);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.y = par.newp.y + dt * reflectedDir.y;
     }
     if (par.newp.z > bottom_pt[2] + box_length){
         par.newp.z = bottom_pt[2] + box_length - col;
-        glm::dvec3 normal = glm::dvec3(0,0,-1);
-        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-        par.newp.z = par.newp.z + dt * reflectedDir.z;
+//        glm::dvec3 normal = glm::dvec3(0,0,-1);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.z = par.newp.z + dt * reflectedDir.z;
     }
 
     if (par.newp.x < bottom_pt[0]){
         par.newp.x = bottom_pt[0] + col;
-        glm::dvec3 normal = glm::dvec3(1,0,0);
-        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-        par.newp.x = par.newp.x + dt * reflectedDir.x;
+//        glm::dvec3 normal = glm::dvec3(1,0,0);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.x = par.newp.x + dt * reflectedDir.x;
     }
     if (par.newp.y < bottom_pt[1]){
         par.newp.y = bottom_pt[1] + col;
-        glm::dvec3 normal = glm::dvec3(0,1,0);
-        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-        par.newp.y = par.newp.y + dt * reflectedDir.y;
+//        glm::dvec3 normal = glm::dvec3(0,1,0);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.y = par.newp.y + dt * reflectedDir.y;
     }
     if (par.newp.z < bottom_pt[2]){
         par.newp.z = bottom_pt[2] + col;
-        glm::dvec3 normal = glm::dvec3(0,0,1);
-        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-        par.newp.z = par.newp.z + dt * reflectedDir.z;
+//        glm::dvec3 normal = glm::dvec3(0,0,1);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.z = par.newp.z + dt * reflectedDir.z;
     }
 
 }
