@@ -21,9 +21,9 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     box_width = cube_width;
     box_length = cube_length;
     box_height = cube_height;
-    int nx = 5;
-    int ny = 5;
-    int nz = 5;
+    int nx = 15;
+    int ny = 15;
+    int nz = 15;
     float d = 0.1;
 
     kernel_size = d * 1.4;
@@ -35,10 +35,10 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     k = 0.001;
     n = 4;
     q = 0.2;
-    epsilon = 104;
-    nIters = 10;
+    epsilon = 100;
+    nIters = 15;
     rest_density = 1 / (d * d *d);
-    dt = 0.01;
+    dt = 0.005;
 
     for(int x=0; x<nx; x++)
     {
@@ -89,11 +89,12 @@ void Particles::step() //simulation loop
         for(Particle &par : particles) {
             //calculate deltap
             calcDeltaP(par);
-
-            par.newp += par.deltap;
             //collisions
             calcCollision(par);
 
+        }
+        for(Particle &par : particles) {
+            par.newp += par.deltap;
         }
         iter++;
     }
@@ -165,12 +166,11 @@ void Particles::calcLambda(Particle &par)
 //calculate lambda and update par's lambda
 {
     //calculate Ci = pi/rest_density - 1
-    printf("pre lambda %f\n", par.lambda);
     float Ci = 0;
     float pi = 0;
     for (Particle * neighbor : par.neighbors) {
-        glm::dvec3 extra = par.p - neighbor->p;
-        pi += calcPoly(par.p - neighbor->p, kernel_size);
+        glm::dvec3 extra = par.newp - neighbor->newp;
+        pi += calcPoly(par.newp - neighbor->newp, kernel_size);
     }
     Ci = pi/rest_density - 1;
 
@@ -181,10 +181,10 @@ void Particles::calcLambda(Particle &par)
     glm::dvec3 iSumVec(0,0,0);
     float jSum = 0.0;
     for (Particle * neighbor : par.neighbors) {
-        iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
+        iSumVec += calcSpiky(par.newp - neighbor->newp, kernel_size);
         //TODO with respect to p_k
         if (&par != neighbor) {
-            double l = dvec3_length(calcSpiky(par.p - neighbor->p, kernel_size));
+            double l = dvec3_length(calcSpiky(par.newp - neighbor->newp, kernel_size));
             float jSumTemp = (float) (1/rest_density) * -1.0 * l;
             jSum += pow(jSumTemp, 2.0);
         }
@@ -193,8 +193,7 @@ void Particles::calcLambda(Particle &par)
     iSum += pow(dvec3_length(iSumVec), 2.0);
     pkCi = iSum + jSum + epsilon;
 
-    par.lambda = -(Ci / pkCi);
-    printf("post lambda %f\n", par.lambda);
+    par.lambda = -(Ci / pkCi) - 10;
     //TODO ask Olivia about new interpretation on calcLambda
     //calculate Ci = pi/rest_density - 1
 //    float Ci = 0.0;
@@ -227,14 +226,23 @@ void Particles::calcDeltaP(Particle &par)
   glm::vec3 deltaP = glm::vec3(0,0,0);
   for(Particle *other_particle : par.neighbors) {
     double new_lambda = other_particle->lambda + par.lambda;
-    deltaP += calcSpiky(par.p - other_particle->p, kernel_size) * new_lambda * (1.0 / rest_density);
-
+    deltaP += calcSpiky(par.newp - other_particle->newp, kernel_size) * new_lambda * (1.0 / rest_density);
+    // glm::vec3 d_q = q * glm::vec3(1.0f) + glm::vec3(par.newp);
+    // float temp = calcPoly(par.newp - other_particle->newp, kernel_size) / calcPoly(d_q, kernel_size);
+    // float s_corr = pow(temp, n);
+    // double new_lambda = other_particle->lambda + par.lambda + s_corr;
+    // deltaP += calcSpiky(par.newp - other_particle->newp, kernel_size) * new_lambda;
     
   }
-  par.deltap =  deltaP;
+  par.deltap = deltaP;
 }
 
 void Particles::calcCollision(Particle &par){
+    // for(Particle *other_particle : par.neighbors) {
+    //     if (par.newp == other_particle->newp) {
+    //         other_particle->newp = par.p;
+    //     }
+    // }
     if (par.newp.x > bottom_pt[0] + box_width){
         par.newp.x = bottom_pt[0] + box_width;
     }
