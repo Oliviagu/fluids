@@ -40,8 +40,8 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     k = 0.001;
     n = 4;
     q = 0.2;
-    epsilon = 100;
-    nIters = 15;
+    epsilon = 1000;
+    nIters = 50;
     rest_density = 1 / (d * d *d);
     dt = 0.005;
 
@@ -55,7 +55,7 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
                 par.newp = par.p;
                 par.v = glm::dvec3(0, 0, 0);
-                par.neighbors = {&par};
+                par.neighbors = {};
                 par.lambda = 0;
                 par.deltap = glm::dvec3(0, 0, 0);
                 particles.push_back(par);
@@ -76,7 +76,7 @@ double Particles::calcPoly(glm::dvec3 r, float h)
 void Particles::step() //simulation loop
 {
     for(Particle &par : particles) {
-        par.neighbors = {&par};
+        par.neighbors = {};
         par.v = par.v + (extForce(par.p) * dt); //apply forces
         par.newp = par.p + (dt * par.v); //predict position
     }
@@ -86,6 +86,7 @@ void Particles::step() //simulation loop
         //findNeighbors will use par.newp and update par.neighbors
         findNeighbors(par, cell_id_list);
     }
+
     int iter = 0;
     while (iter < nIters) {
         for(Particle &par : particles) {
@@ -119,6 +120,7 @@ void Particles::step() //simulation loop
 glm::dvec3 Particles::extForce(glm::dvec3 position) 
 //find forces and return extForce at position
 {
+//    return glm::dvec3(0, 0, 0);
     return glm::dvec3(0, -9.81, 0);
 }
 
@@ -152,7 +154,6 @@ std::string Particles::createStringCellId(int (&pos) [3])
 void Particles::findNeighbors(Particle &par, std::map<std::string, std::vector<Particle *>>  &cell_id_map)
 //calculate neighbors and update par's neighbors
 {
-  //par.neighbor already has self in the initialization
   for (int x = -1; x <= 1; x += 1) {
     for (int y = -1; y <= 1; y += 1) {
       for (int z = -1; z <= 1; z += 1) {
@@ -160,7 +161,13 @@ void Particles::findNeighbors(Particle &par, std::map<std::string, std::vector<P
         std::string id = createStringCellId(neighbor);
         if (cell_id_map.find(id) != cell_id_map.end()) {
           //found
-          par.neighbors.insert(par.neighbors.end(), cell_id_map[id].begin(), cell_id_map[id].end());
+            par.neighbors.insert(par.neighbors.end(), cell_id_map[id].begin(), cell_id_map[id].end());
+//          for (Particle * n : cell_id_map[id]) {
+//            glm::dvec3 npos = n->newp;
+//            if (dvec3_length(npos - par.newp) <= kernel_size) {
+//              par.neighbors.insert(par.neighbors.end(), n);
+//            }
+//          }
         }
       }
     }
@@ -177,14 +184,18 @@ void Particles::calcLambda(Particle &par)
         glm::dvec3 extra = par.newp - neighbor->newp;
         pi += calcPoly(par.newp - neighbor->newp, kernel_size);
     }
+
     Ci = pi/rest_density - 1;
 
+
+//    printf("CI: %f \n", Ci); 
 
     //calculate pkCi
     float pkCi = 0;
     double iSum = 0; //pkCi for when k = i
     glm::dvec3 iSumVec(0,0,0);
-    float jSum = 0.0;
+    float jSum = 0;
+    int ownParticle = 0;
     for (Particle * neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.newp - neighbor->newp, kernel_size);
         //TODO with respect to p_k
@@ -193,7 +204,13 @@ void Particles::calcLambda(Particle &par)
             float jSumTemp = (float) (1/rest_density) * -1.0 * l;
             jSum += pow(jSumTemp, 2.0);
         }
+        else{
+            ownParticle += 1;
+        }
+
     }
+
+//    printf("Own particle: %d \n", ownParticle); 
     iSumVec = (1/rest_density) * iSumVec;
     iSum += pow(dvec3_length(iSumVec), 2.0);
     pkCi = iSum + jSum + epsilon;
@@ -204,7 +221,7 @@ void Particles::calcLambda(Particle &par)
 //    float Ci = 0.0;
 //    float pi = 0.0;
 //    for (Particle * neighbor : par.neighbors) {
-//        pi += calcPoly(par.p - neighbor->p, kernel_size);
+//      pi += calcPoly(par.newp - neighbor->newp, kernel_size);
 //    }
 //    Ci = pi/rest_density - 1;
 //    double gradient_constraint_neighbors = epsilon;
@@ -212,10 +229,10 @@ void Particles::calcLambda(Particle &par)
 //        glm::dvec3 gradient_constraint_fn = glm::dvec3(0.0, 0.0, 0.0);
 //        if (&par == neighbor) {
 //          for (Particle * next_neighbor : par.neighbors) {
-//            gradient_constraint_fn += calcSpiky(par.p - next_neighbor->p, kernel_size);
+//            gradient_constraint_fn += calcSpiky(par.newp - next_neighbor->newp, kernel_size);
 //          }
 //        } else {
-//          gradient_constraint_fn = -1.0 * calcSpiky(par.p - neighbor->p, kernel_size);
+//          gradient_constraint_fn = -1.0 * calcSpiky(par.newp - neighbor->newp, kernel_size);
 //        }
 //        gradient_constraint_fn = (1.0 / rest_density) * gradient_constraint_fn;
 //        gradient_constraint_neighbors += pow(dvec3_length(gradient_constraint_fn), 2.0);
@@ -231,41 +248,52 @@ void Particles::calcDeltaP(Particle &par)
   glm::vec3 deltaP = glm::vec3(0,0,0);
   for(Particle *other_particle : par.neighbors) {
     double new_lambda = other_particle->lambda + par.lambda;
-    deltaP += calcSpiky(par.newp - other_particle->newp, kernel_size) * new_lambda * (1.0 / rest_density);
-    // glm::vec3 d_q = q * glm::vec3(1.0f) + glm::vec3(par.newp);
-    // float temp = calcPoly(par.newp - other_particle->newp, kernel_size) / calcPoly(d_q, kernel_size);
-    // float s_corr = pow(temp, n);
-    // double new_lambda = other_particle->lambda + par.lambda + s_corr;
-    // deltaP += calcSpiky(par.newp - other_particle->newp, kernel_size) * new_lambda;
+    deltaP += calcSpiky(par.newp - other_particle->newp, kernel_size) * new_lambda ;
+
     
   }
-  par.deltap = deltaP;
+  par.deltap =  deltaP * (float) (1.0 / rest_density);
 }
 
-void Particles::calcCollision(Particle &par){
-    // for(Particle *other_particle : par.neighbors) {
-    //     if (par.newp == other_particle->newp) {
-    //         other_particle->newp = par.p;
-    //     }
-    // }
+
+void Particles::calcCollision(Particle &par) {
+    float col = 0.0014f;
     if (par.newp.x > bottom_pt[0] + box_width){
-        par.newp.x = bottom_pt[0] + box_width;
+        par.newp.x = bottom_pt[0] + box_width - col;
+//        glm::dvec3 normal = glm::dvec3(-1,0,0);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.x = par.newp.x + dt * reflectedDir.x;
     }
     if (par.newp.y > bottom_pt[1] + box_height){
-        par.newp.y = bottom_pt[1] + box_height;
+        par.newp.y = bottom_pt[1] + box_height - col;
+//        glm::dvec3 normal = glm::dvec3(0,-1,0);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.y = par.newp.y + dt * reflectedDir.y;
     }
     if (par.newp.z > bottom_pt[2] + box_length){
-        par.newp.z = bottom_pt[2] + box_length;
+        par.newp.z = bottom_pt[2] + box_length - col;
+//        glm::dvec3 normal = glm::dvec3(0,0,-1);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.z = par.newp.z + dt * reflectedDir.z;
     }
 
     if (par.newp.x < bottom_pt[0]){
-        par.newp.x = bottom_pt[0];
+        par.newp.x = bottom_pt[0] + col;
+//        glm::dvec3 normal = glm::dvec3(1,0,0);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.x = par.newp.x + dt * reflectedDir.x;
     }
     if (par.newp.y < bottom_pt[1]){
-        par.newp.y = bottom_pt[1];
+        par.newp.y = bottom_pt[1] + col;
+//        glm::dvec3 normal = glm::dvec3(0,1,0);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.y = par.newp.y + dt * reflectedDir.y;
     }
     if (par.newp.z < bottom_pt[2]){
-        par.newp.z = bottom_pt[2];
+        par.newp.z = bottom_pt[2] + col;
+//        glm::dvec3 normal = glm::dvec3(0,0,1);
+//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
+//        par.newp.z = par.newp.z + dt * reflectedDir.z;
     }
 
 }
@@ -321,24 +349,24 @@ void Particles::render() const
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_COLOR_MATERIAL);
-    // glColorMaterial(GL_FRONT, GL_DIFFUSE);
-    // glColor3f(0.2, 0.5, 0.8);
-    // glColorMaterial(GL_FRONT, GL_SPECULAR);
-    // glColor3f(0.9, 0.9, 0.9);
-    // glColorMaterial(GL_FRONT, GL_AMBIENT);
-    // glColor3f(0.2, 0.5, 0.8);
+    glColorMaterial(GL_FRONT, GL_DIFFUSE);
+    glColor3f(0.2, 0.5, 0.8);
+    glColorMaterial(GL_FRONT, GL_SPECULAR);
+    glColor3f(0.9, 0.9, 0.9);
+    glColorMaterial(GL_FRONT, GL_AMBIENT);
+    glColor3f(0.2, 0.5, 0.8);
     
     for(const Particle &par : particles)
     {    
-        float random = rand();
-        float a = clip(random, 0.0, 1.0);
+        // float random = rand();
+        // float a = clip(random, 0.0, 1.0);
 
-        glColorMaterial(GL_FRONT, GL_DIFFUSE);
-        glColor3f(a, a, a);
-        glColorMaterial(GL_FRONT, GL_SPECULAR);
-        glColor3f(a, a, a);
-        glColorMaterial(GL_FRONT, GL_AMBIENT);
-        glColor3f(a, a, a);
+        // glColorMaterial(GL_FRONT, GL_DIFFUSE);
+        // glColor3f(a, a, a);
+        // glColorMaterial(GL_FRONT, GL_SPECULAR);
+        // glColor3f(a, a, a);
+        // glColorMaterial(GL_FRONT, GL_AMBIENT);
+        // glColor3f(a, a, a);
 
         glPushMatrix();
         glTranslatef(par.p.x, par.p.y, par.p.z);
