@@ -35,8 +35,8 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     k = 0.001;
     n = 4;
     q = 0.2;
-    epsilon = 1000;
-    nIters = 50;
+    epsilon = 104;
+    nIters = 10;
     rest_density = 1 / (d * d *d);
     dt = 0.005;
 
