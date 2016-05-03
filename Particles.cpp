@@ -39,7 +39,7 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     nIters = 10;
     rest_density = 1 / (d * d *d);
     dt = 0.01;
-
+    float min_y = 5;
     for(int x=0; x<nx; x++)
     {
         for(int y=0; y<ny; y++)
@@ -47,21 +47,31 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
             for(int z=0; z<nz; z++)
             {
                 Particle par;
-                par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
+                par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.05, (z+0.5-nz*0.5)*d);
+                if (par.p.y < min_y){
+                    min_y = par.p.y;
+                }
                 par.newp = par.p;
                 par.v = glm::dvec3(0, 0, 0);
                 par.neighbors = {};
                 par.lambda = 0;
                 par.deltap = glm::dvec3(0, 0, 0);
                 particles.push_back(par);
+
             }
         }
     }
+    printf ("min y is %f \n", min_y);
 }
 
 //Kernel Functions
 double Particles::calcPoly(glm::dvec3 r, float h) 
 {
+    double length = dvec3_length(r);
+    /*if(length > h){
+        //printf ("%f's length \n", length);
+        return 0;
+     }*/
     double temp = pow(h, 2.0) - pow(dvec3_length(r), 2.0);
     double value =  (315 / (64 * M_PI * pow(h, 9.0))) * pow(temp, 3.0);
     return value;
@@ -100,6 +110,16 @@ void Particles::step() //simulation loop
     for(Particle &par : particles) {
         //update velocity
         par.v = (1.0 / dt) * (par.newp - par.p);
+        if(par.collisions[0]){
+            par.v.x = -par.v.x;
+        }
+        if(par.collisions[1]){
+            par.v.y = -par.v.y;
+        }
+        if(par.collisions[2]){
+            par.v.z = -par.v.z;
+        }
+        //printf("Gotta go fast at %f %f %f \n", par.v.x, par.v.y, par.v.z);
 //        //apply vorticity
 //        calcVorticity(par);
 //        //apply viscosity
@@ -174,12 +194,13 @@ void Particles::calcLambda(Particle &par)
 
     Ci = pi/rest_density - 1;
 
-    printf("CI: %f \n", Ci); 
+    //printf("CI: %f \n", Ci); 
     //calculate pkCi
     float pkCi = 0;
     double iSum = 0; //pkCi for when k = i
     glm::dvec3 iSumVec(0,0,0);
     float jSum = 0;
+
     int ownParticle = 0;
     for (Particle * neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.p - neighbor->p, kernel_size);
@@ -195,7 +216,7 @@ void Particles::calcLambda(Particle &par)
 
     }
 
-    printf("Own particle: %d \n", ownParticle); 
+    //printf("Own particle: %d \n", ownParticle); 
     iSumVec = (1/rest_density) * iSumVec;
     iSum += pow(dvec3_length(iSumVec), 2.0);
     pkCi = iSum + jSum + epsilon;
@@ -241,24 +262,34 @@ void Particles::calcDeltaP(Particle &par)
 }
 
 void Particles::calcCollision(Particle &par){
+        par.collisions[0] = false;
+        par.collisions[1] = false;
+        par.collisions[2] = false;
+
     if (par.newp.x > bottom_pt[0] + box_width){
         par.newp.x = bottom_pt[0] + box_width;
+        par.collisions[0] = true;
     }
     if (par.newp.y > bottom_pt[1] + box_height){
         par.newp.y = bottom_pt[1] + box_height;
+        par.collisions[1] = true;
     }
     if (par.newp.z > bottom_pt[2] + box_length){
         par.newp.z = bottom_pt[2] + box_length;
+        par.collisions[2] = true;
     }
 
     if (par.newp.x < bottom_pt[0]){
         par.newp.x = bottom_pt[0];
+        par.collisions[0] = true;
     }
     if (par.newp.y < bottom_pt[1]){
         par.newp.y = bottom_pt[1];
+        par.collisions[1] = true;
     }
     if (par.newp.z < bottom_pt[2]){
         par.newp.z = bottom_pt[2];
+        par.collisions[2] = true;
     }
 
 }
@@ -272,6 +303,10 @@ glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
   if (dvec3_length(p) == 0) {
     return glm::dvec3(0, 0, 0);
   }
+  double length = dvec3_length(p);
+  /*if(length > h){
+    return p;
+  }*/
   double constant =  45/M_PI * pow(h,6) * pow(h - dvec3_length(p),2)/ dvec3_length(p) ;
   return p * constant;
 }

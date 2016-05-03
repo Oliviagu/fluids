@@ -30,6 +30,9 @@ typedef struct Particle
     glm::dvec3 p;
     glm::dvec3 newp;
     glm::dvec3 v;
+
+    bool collisions[6];
+    bool collision; 
     std::vector<Particle *> neighbors;
     float lambda; //constraint force
     glm::dvec3 deltap;
