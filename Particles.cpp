@@ -207,6 +207,7 @@ void Particles::calcLambda(Particle &par)
     pkCi = iSum + jSum + epsilon;
 
     par.lambda = -(Ci / pkCi);
+    printf("lambda %f\n", par.lambda);
     //TODO ask Olivia about new interpretation on calcLambda
     //calculate Ci = pi/rest_density - 1
 //    float Ci = 0.0;
@@ -244,6 +245,7 @@ void Particles::calcDeltaP(Particle &par)
     
   }
   par.deltap =  deltaP * (float) (1.0 / rest_density);
+  printf("deltap x %f y %f z %f\n", par.deltap.x, par.deltap.y, par.deltap.z);
 }
 
 
@@ -293,13 +295,16 @@ double Particles::dvec3_length(glm::dvec3 p) {
   double value = sqrt(pow(p.x,2) + pow(p.y,2) + pow(p.z,2));
   return value;
 }
+
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
 
   if (dvec3_length(p) == 0) {
     return glm::dvec3(0, 0, 0);
   }
-  double constant =  45/M_PI * pow(h,6) * pow(h - dvec3_length(p),2)/ dvec3_length(p) ;
-  return p * constant;
+  double constant =  (45.0 * pow(h - dvec3_length(p),2)) /(M_PI * pow(h,6));
+  glm::dvec3 val =  (p / dvec3_length(p)) * constant;
+  printf("calcSpiky x %f y %f z %f\n", val.x, val.y, val.z);
+  return val;
 }
 
 void Particles::calcVorticity(Particle &par)
