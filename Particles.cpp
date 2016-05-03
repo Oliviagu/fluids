@@ -62,6 +62,12 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
 //Kernel Functions
 double Particles::calcPoly(glm::dvec3 r, float h) 
 {
+  if (dvec3_length(r) <= 0) {
+    return 0;
+  }
+  if (dvec3_length(r) > h) {
+    return 0;
+  }
     double temp = pow(h, 2.0) - pow(dvec3_length(r), 2.0);
     double value =  (315 / (64 * M_PI * pow(h, 9.0))) * pow(temp, 3.0);
     return value;
@@ -186,17 +192,13 @@ void Particles::calcLambda(Particle &par)
     double iSum = 0; //pkCi for when k = i
     glm::dvec3 iSumVec(0,0,0);
     float jSum = 0;
-    int ownParticle = 0;
     for (Particle * neighbor : par.neighbors) {
         iSumVec += calcSpiky(par.newp - neighbor->newp, kernel_size);
         //TODO with respect to p_k
         if (&par != neighbor) {
-            double l = dvec3_length(calcSpiky(par.newp - neighbor->newp, kernel_size));
-            float jSumTemp = (float) (1/rest_density) * -1.0 * l;
-            jSum += pow(jSumTemp, 2.0);
-        }
-        else{
-            ownParticle += 1;
+            glm::dvec3 l = calcSpiky(par.newp - neighbor->newp, kernel_size);
+            glm::dvec3 jSumTemp = (float) (1/rest_density) * -1.0 * l;
+            jSum += pow(dvec3_length(jSumTemp), 2.0);
         }
 
     }
@@ -206,7 +208,7 @@ void Particles::calcLambda(Particle &par)
     iSum += pow(dvec3_length(iSumVec), 2.0);
     pkCi = iSum + jSum + epsilon;
 
-    par.lambda = -(Ci / pkCi);
+    par.lambda = -1.0 * (Ci / pkCi);
     printf("lambda %f\n", par.lambda);
     //TODO ask Olivia about new interpretation on calcLambda
     //calculate Ci = pi/rest_density - 1
@@ -298,9 +300,13 @@ double Particles::dvec3_length(glm::dvec3 p) {
 
 glm::dvec3 Particles::calcSpiky(glm::dvec3 p, float h){
 
-  if (dvec3_length(p) == 0) {
+  if (dvec3_length(p) <= 0) {
     return glm::dvec3(0, 0, 0);
   }
+  if (dvec3_length(p) > h) {
+    return glm::dvec3(0, 0, 0);
+  }
+
   double constant =  (45.0 * pow(h - dvec3_length(p),2)) /(M_PI * pow(h,6));
   glm::dvec3 val =  (p / dvec3_length(p)) * constant;
   printf("calcSpiky x %f y %f z %f\n", val.x, val.y, val.z);
