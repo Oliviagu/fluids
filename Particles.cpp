@@ -12,7 +12,12 @@
  */
 
 #include "Particles.h"
- 
+
+inline float clip(const float& n, const float& lower, const float& upper) 
+{
+    return glm::max(lower, glm::min(n, upper));
+}
+
 Particles::Particles(float most_bottom[3], float cube_width, float cube_length, float cube_height) 
 {
     bottom_pt[0] = most_bottom[0];
@@ -21,9 +26,9 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     box_width = cube_width;
     box_length = cube_length;
     box_height = cube_height;
-    int nx = 15;
-    int ny = 15;
-    int nz = 15;
+    int nx = 5;
+    int ny = 5;
+    int nz = 5;
     float d = 0.1;
 
     kernel_size = d * 1.4;
@@ -304,7 +309,7 @@ void Particles::calcViscosity(Particle &par)
 void Particles::render() const
 {
     GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-    GLfloat mat_shininess[] = { 50.0 };
+    GLfloat mat_shininess[] = { 75.0 };
     GLfloat light_position[] = { 10.0, 10.0, 10.0, 0.0 };
     glShadeModel (GL_SMOOTH);
     glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -316,15 +321,25 @@ void Particles::render() const
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT, GL_DIFFUSE);
-    glColor3f(0.2, 0.5, 0.8);
-    glColorMaterial(GL_FRONT, GL_SPECULAR);
-    glColor3f(0.9, 0.9, 0.9);
-    glColorMaterial(GL_FRONT, GL_AMBIENT);
-    glColor3f(0.2, 0.5, 0.8);
+    // glColorMaterial(GL_FRONT, GL_DIFFUSE);
+    // glColor3f(0.2, 0.5, 0.8);
+    // glColorMaterial(GL_FRONT, GL_SPECULAR);
+    // glColor3f(0.9, 0.9, 0.9);
+    // glColorMaterial(GL_FRONT, GL_AMBIENT);
+    // glColor3f(0.2, 0.5, 0.8);
     
     for(const Particle &par : particles)
     {    
+        float random = rand();
+        float a = clip(random, 0.0, 1.0);
+
+        glColorMaterial(GL_FRONT, GL_DIFFUSE);
+        glColor3f(a, a, a);
+        glColorMaterial(GL_FRONT, GL_SPECULAR);
+        glColor3f(a, a, a);
+        glColorMaterial(GL_FRONT, GL_AMBIENT);
+        glColor3f(a, a, a);
+
         glPushMatrix();
         glTranslatef(par.p.x, par.p.y, par.p.z);
         glutSolidSphere(radius, 10, 10);
