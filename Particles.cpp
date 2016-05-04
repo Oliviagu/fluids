@@ -48,9 +48,9 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     n = 4;
     q = 0.2;
     epsilon = 1000;
-    nIters = 5;
+    nIters = 20;
     rest_density = 1 / (d * d * d);
-    dt = 0.1;
+    dt = 0.01;
 
     for(int x=0; x<nx; x++)
     {
@@ -291,20 +291,20 @@ void Particles::calcCollision(Particle &par) {
       // printf("new obstacle x bool %d\n", new_obstacle_x);
       // printf("new obstacle y bool %d\n", new_obstacle_y);
       // printf("new obstacle z bool %d\n", new_obstacle_z);
-      if (par.v.x != 0){
-        float t_left = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0], par.v.x);
-        float t_right = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0] + obstacle_box_width, par.v.x);
-        if (t_left >= 0 and t_right >= 0) {
-          if (t_left < t_right) {
-            par.newp.x = par.prev_newp.x + t_left * par.v.x - col;
-          } else {
-            par.newp.x = par.prev_newp.x + t_right * par.v.x + col;
-          }
-        } else {
-          // printf("X error newp x %f\n", par.newp.x);
-          // printf("X ERROR t_left %f t_right %f \n", t_left, t_right);
-        }
-      }
+      // if (par.v.x != 0){
+      //   float t_left = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0], par.v.x);
+      //   float t_right = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0] + obstacle_box_width, par.v.x);
+      //   if (t_left >= 0 and t_right >= 0) {
+      //     if (t_left < t_right) {
+      //       par.newp.x = par.prev_newp.x + t_left * par.v.x - col;
+      //     } else {
+      //       par.newp.x = par.prev_newp.x + t_right * par.v.x + col;
+      //     }
+      //   } else {
+      //     // printf("X error newp x %f\n", par.newp.x);
+      //     // printf("X ERROR t_left %f t_right %f \n", t_left, t_right);
+      //   }
+      // }
       if (par.v.y != 0){
           float t_left = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1], par.v.y);
           float t_right = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1] + obstacle_box_height, par.v.y);
@@ -314,20 +314,20 @@ void Particles::calcCollision(Particle &par) {
             par.newp.y = par.prev_newp.y + t_right * par.v.y + col;
           }
       }
-      if (par.v.z != 0){
-          float t_left = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2], par.v.z);
-          float t_right = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2] + obstacle_box_length, par.v.z);
-          if (t_left >= 0 and t_right >= 0) {
-            if (t_left < t_right) {
-              par.newp.z = par.prev_newp.z + t_left * par.v.z - col;
-            } else {
-              par.newp.z = par.prev_newp.z + t_right * par.v.z + col;
-            }
-          } else {
-            // printf("z error newp z %f\n", par.newp.z);
-            // printf("Z ERROR t_left %f t_right %f \n", t_left, t_right);
-          }
-      }
+      // if (par.v.z != 0){
+      //     float t_left = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2], par.v.z);
+      //     float t_right = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2] + obstacle_box_length, par.v.z);
+      //     if (t_left >= 0 and t_right >= 0) {
+      //       if (t_left < t_right) {
+      //         par.newp.z = par.prev_newp.z + t_left * par.v.z - col;
+      //       } else {
+      //         par.newp.z = par.prev_newp.z + t_right * par.v.z + col;
+      //       }
+      //     } else {
+      //       // printf("z error newp z %f\n", par.newp.z);
+      //       // printf("Z ERROR t_left %f t_right %f \n", t_left, t_right);
+      //     }
+      // }
       //printf("collision result newp x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
       obstacle_x = (par.newp.x >= obstacle_bottom_pt[0]) and (par.newp.x <= obstacle_bottom_pt[0] + obstacle_box_width);
       obstacle_y = (par.newp.y >= obstacle_bottom_pt[1]) and (par.newp.y <= obstacle_bottom_pt[1] + obstacle_box_height);
