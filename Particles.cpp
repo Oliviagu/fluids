@@ -29,6 +29,10 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     obstacle_bottom_pt[0] = most_bottom_obstacle[0];
     obstacle_bottom_pt[1] = most_bottom_obstacle[1];
     obstacle_bottom_pt[2] = most_bottom_obstacle[2];
+    printf("obstacle box x %f y %f z %f\n", obstacle_bottom_pt[0], 
+        obstacle_bottom_pt[1], obstacle_bottom_pt[2]);
+    printf("other obstacle box x %f y %f z %f\n", obstacle_bottom_pt[0] + obstacle_width, 
+        obstacle_bottom_pt[1] + obstacle_height, obstacle_bottom_pt[2] + obstacle_length);
     obstacle_box_width = obstacle_width;
     obstacle_box_length = obstacle_length;
     obstacle_box_height = obstacle_height;
@@ -60,6 +64,7 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
                 Particle par;
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
                 par.newp = par.p;
+                printf("initial par p x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
                 par.prev_newp = par.p;
                 par.v = glm::dvec3(0, 0, 0);
                 par.neighbors = {};
@@ -244,6 +249,7 @@ void Particles::calcDeltaP(Particle &par)
 
 
 void Particles::calcCollision(Particle &par) {
+  printf("collision  newp x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
     float col = 0.0014f;
     if (par.newp.x > bottom_pt[0] + box_width){
         par.newp.x = bottom_pt[0] + box_width - col;
@@ -270,49 +276,54 @@ void Particles::calcCollision(Particle &par) {
     bool obstacle_z = (par.newp.z >= obstacle_bottom_pt[2]) and (par.newp.z <= obstacle_bottom_pt[2] + obstacle_box_length); 
 
     auto plane_intersect = [] (float p, float o, float d) -> float {
+      printf("num %f denom %f\n", p-o, d);
       return (p - o) / d;
     };
 
-    if (obstacle_x){
-      float t_left = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0], par.v.x);
-      float t_right = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0] + obstacle_box_width, par.v.x);
-      if (t_left >= 0 and t_right >= 0) {
-        if (t_left < t_right) {
-          par.newp.x = par.prev_newp.x + t_left * par.v.x - col;
+    if (obstacle_x and obstacle_y and obstacle_z) {
+      if (obstacle_x){
+        float t_left = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0], par.v.x);
+        float t_right = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0] + obstacle_box_width, par.v.x);
+        if (t_left >= 0 and t_right >= 0) {
+          if (t_left < t_right) {
+            par.newp.x = par.prev_newp.x + t_left * par.v.x - col;
+          } else {
+            par.newp.x = par.prev_newp.x + t_right * par.v.x + col;
+          }
         } else {
-          par.newp.x = par.prev_newp.x + t_right * par.v.x + col;
+          printf("X error newp x %f\n", par.newp.x);
+          printf("X ERROR t_left %f t_right %f \n", t_left, t_right);
         }
-      } else {
-        printf("ERROR\n");
       }
-    }
-    if (obstacle_y){
-        float t_left = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1], par.v.y);
-        float t_right = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1] + obstacle_box_height, par.v.y);
-        if (t_left >= 0 and t_right >= 0) {
-          if (t_left < t_right) {
-            printf("ERROR\n");
+      if (obstacle_y){
+          float t_left = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1], par.v.y);
+          float t_right = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1] + obstacle_box_height, par.v.y);
+          if (t_left >= 0 and t_right >= 0) {
+            if (t_left < t_right) {
+              printf(" Y bottom ERROR\n");
+            } else {
+              par.newp.y = par.prev_newp.y + t_right * par.v.y + col;
+            }
           } else {
-            par.newp.y = par.prev_newp.y + t_right * par.v.y + col;
+            printf("y error newp y %f\n", par.newp.y);
+            printf("Y ERROR t_left %f t_right %f \n", t_left, t_right);
           }
-        } else {
-          printf("ERROR\n");
-        }
-    }
-    if (obstacle_z){
-        float t_left = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2], par.v.z);
-        float t_right = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2] + obstacle_box_length, par.v.z);
-        if (t_left >= 0 and t_right >= 0) {
-          if (t_left < t_right) {
-            par.newp.z = par.prev_newp.z + t_left * par.v.z - col;
+      }
+      if (obstacle_z){
+          float t_left = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2], par.v.z);
+          float t_right = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2] + obstacle_box_length, par.v.z);
+          if (t_left >= 0 and t_right >= 0) {
+            if (t_left < t_right) {
+              par.newp.z = par.prev_newp.z + t_left * par.v.z - col;
+            } else {
+              par.newp.z = par.prev_newp.z + t_right * par.v.z + col;
+            }
           } else {
-            par.newp.z = par.prev_newp.z + t_right * par.v.z + col;
+            printf("z error newp z %f\n", par.newp.z);
+            printf("Z ERROR t_left %f t_right %f \n", t_left, t_right);
           }
-        } else {
-          printf("ERROR\n");
-        }
-    }
-
+      }
+  }
 
 }
 
