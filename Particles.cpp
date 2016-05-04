@@ -48,9 +48,9 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     n = 4;
     q = 0.2;
     epsilon = 1000;
-    nIters = 5;
+    nIters = 20;
     rest_density = 1 / (d * d * d);
-    dt = 0.1;
+    dt = 0.01;
 
     for(int x=0; x<nx; x++)
     {

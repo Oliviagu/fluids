@@ -16,7 +16,7 @@ inline float clip(const float& n, const float& lower, const float& upper)
 }
 
 float cube_width = 3;
-float cube_height = 5;
+float cube_height = 7;
 float cube_length = 3;
 float most_bottom[] = {(float) (-1.0 * (cube_width / 2.0)),(float) (-1.0 * (cube_height / 2.0)),(float) (-1.0 * (cube_length / 2.0))};
 
@@ -50,7 +50,7 @@ float obstacle[8][3] =
 };
 float theta = M_PI/8;
 float phi = -M_PI/8+M_PI_2;
-float dist = 4.2;
+float dist = 5.7;
 int width = 800;
 int height = 800;
 int frame = 0;
