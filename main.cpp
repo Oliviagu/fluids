@@ -15,10 +15,10 @@ inline float clip(const float& n, const float& lower, const float& upper)
     return glm::max(lower, glm::min(n, upper));
 }
 
-float cube_width = 2;
-float cube_height = 2;
-float cube_length = 2;
-float most_bottom[] = {-1.0 , -1.0, -1.0};
+float cube_width = 3;
+float cube_height = 5;
+float cube_length = 3;
+float most_bottom[] = {(float) (-1.0 * (cube_width / 2.0)),(float) (-1.0 * (cube_height / 2.0)),(float) (-1.0 * (cube_length / 2.0))};
 
 float ver[8][3] = 
 {
@@ -32,9 +32,25 @@ float ver[8][3] =
     {most_bottom[0] + cube_width,most_bottom[1],most_bottom[2]},
 };
 
+float obstacle_width = 1;
+float obstacle_height = 1;
+float obstacle_length = 1;
+float most_bottom_obstacle[] = {(float) (-1.0 * (obstacle_width / 2.0)),(float) (-1.0 * (cube_height / 2.0)),(float) (-1.0 * (obstacle_length / 2.0))};
+
+float obstacle[8][3] = 
+{
+    {most_bottom_obstacle[0],most_bottom_obstacle[1],most_bottom_obstacle[2] + obstacle_length},
+    {most_bottom_obstacle[0],most_bottom_obstacle[1] + obstacle_height,most_bottom_obstacle[2] + obstacle_length},
+    {most_bottom_obstacle[0] + obstacle_width,most_bottom_obstacle[1] + obstacle_height,most_bottom_obstacle[2] + obstacle_length},
+    {most_bottom_obstacle[0] + obstacle_width,most_bottom_obstacle[1],most_bottom_obstacle[2] + obstacle_length},
+    {most_bottom_obstacle[0],most_bottom_obstacle[1],most_bottom_obstacle[2]},
+    {most_bottom_obstacle[0],most_bottom_obstacle[1] + obstacle_height,most_bottom_obstacle[2]},
+    {most_bottom_obstacle[0] + obstacle_width,most_bottom_obstacle[1] + obstacle_height,most_bottom_obstacle[2]},
+    {most_bottom_obstacle[0] + obstacle_width,most_bottom_obstacle[1],most_bottom_obstacle[2]},
+};
 float theta = M_PI/8;
 float phi = -M_PI/8+M_PI_2;
-float dist = 2.5;
+float dist = 4.2;
 int width = 800;
 int height = 800;
 int frame = 0;
@@ -56,6 +72,16 @@ void quad(int a,int b,int c,int d)
     glVertex3fv(ver[d]);
     glEnd();
 }
+void quad_obstacle(int a,int b,int c,int d)
+{
+    glBegin(GL_QUADS);
+    glVertex3fv(obstacle[a]);
+    glVertex3fv(obstacle[b]);
+    glVertex3fv(obstacle[c]);
+    glVertex3fv(obstacle[d]);
+    glEnd();
+}
+
 void cube(){
     quad(0,3,2,1);
     quad(2,3,7,6);
@@ -63,6 +89,16 @@ void cube(){
     quad(1,2,6,5);
     quad(4,5,6,7);
     quad(0,1,5,4);
+
+}
+
+void make_obstacle(){
+    quad_obstacle(0,3,2,1);
+    quad_obstacle(2,3,7,6);
+    quad_obstacle(0,4,7,3);
+    quad_obstacle(1,2,6,5);
+    quad_obstacle(4,5,6,7);
+    quad_obstacle(0,1,5,4);
 
 }
 void idle(void)
@@ -140,6 +176,8 @@ void display(void)
     cube();
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     particles.render();
+
+    make_obstacle();
     glutSwapBuffers();
 }
 
