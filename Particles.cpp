@@ -124,6 +124,7 @@ void Particles::step() //simulation loop
         for(Particle &par : particles) {
             par.prev_newp = par.newp;
             par.newp += par.deltap;
+            //printf("updated newp  newp x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
         }
         iter++;
     }
@@ -276,7 +277,7 @@ void Particles::calcCollision(Particle &par) {
     bool obstacle_y = (par.newp.y >= obstacle_bottom_pt[1]) and (par.newp.y <= obstacle_bottom_pt[1] + obstacle_box_height);
     bool obstacle_z = (par.newp.z >= obstacle_bottom_pt[2]) and (par.newp.z <= obstacle_bottom_pt[2] + obstacle_box_length); 
 
-    auto plane_intersect = [] (float p, float o, float d) -> float {
+    auto plane_intersect = [] (float o, float p, float d) -> float {
       printf("num %f denom %f\n", p-o, d);
       return (p - o) / d;
     };
@@ -324,6 +325,7 @@ void Particles::calcCollision(Particle &par) {
             printf("Z ERROR t_left %f t_right %f \n", t_left, t_right);
           }
       }
+      //printf("collision x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
   }
 
 }
