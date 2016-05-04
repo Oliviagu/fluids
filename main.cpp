@@ -174,10 +174,10 @@ void display(void)
     glEnable(GL_DEPTH_TEST);
     glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     cube();
+    make_obstacle();
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     particles.render();
 
-    make_obstacle();
     glutSwapBuffers();
 }
 
