@@ -18,7 +18,7 @@ inline float clip(const float& n, const float& lower, const float& upper)
     return glm::max(lower, glm::min(n, upper));
 }
 
-Particles::Particles(float most_bottom[3], float cube_width, float cube_length, float cube_height) 
+Particles::Particles(float most_bottom[3], float cube_width, float cube_length, float cube_height, float most_bottom_obstacle[3], float obstacle_width, float obstacle_length, float obstacle_height) 
 {
     bottom_pt[0] = most_bottom[0];
     bottom_pt[1] = most_bottom[1];
@@ -26,6 +26,12 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     box_width = cube_width;
     box_length = cube_length;
     box_height = cube_height;
+    obstacle_bottom_pt[0] = most_bottom_obstacle[0];
+    obstacle_bottom_pt[1] = most_bottom_obstacle[1];
+    obstacle_bottom_pt[2] = most_bottom_obstacle[2];
+    obstacle_box_width = obstacle_width;
+    obstacle_box_length = obstacle_length;
+    obstacle_box_height = obstacle_height;
     int nx = 10;
     int ny = 10;
     int nz = 10;
@@ -221,30 +227,6 @@ void Particles::calcLambda(Particle &par)
     //printf("iSum: %f\n", iSum); 
 
     par.lambda =  -1 * (Ci / pkCi);
-    //printf("lambda %f\n", par.lambda);
-
-    //TODO ask Olivia about new interpretation on calcLambda
-    //calculate Ci = pi/rest_density - 1
-//    float Ci = 0.0;
-//    float pi = 0.0;
-//    for (Particle * neighbor : par.neighbors) {
-//      pi += calcPoly(par.newp - neighbor->newp, kernel_size);
-//    }
-//    Ci = pi/rest_density - 1;
-//    double gradient_constraint_neighbors = epsilon;
-//    for (Particle * neighbor : par.neighbors) {
-//        glm::dvec3 gradient_constraint_fn = glm::dvec3(0.0, 0.0, 0.0);
-//        if (&par == neighbor) {
-//          for (Particle * next_neighbor : par.neighbors) {
-//            gradient_constraint_fn += calcSpiky(par.newp - next_neighbor->newp, kernel_size);
-//          }
-//        } else {
-//          gradient_constraint_fn = -1.0 * calcSpiky(par.newp - neighbor->newp, kernel_size);
-//        }
-//        gradient_constraint_fn = (1.0 / rest_density) * gradient_constraint_fn;
-//        gradient_constraint_neighbors += pow(dvec3_length(gradient_constraint_fn), 2.0);
-//    }
-//    par.lambda = -1.0 * (Ci / gradient_constraint_neighbors);
 
 }
 
@@ -268,41 +250,38 @@ void Particles::calcCollision(Particle &par) {
     float col = 0.0014f;
     if (par.newp.x > bottom_pt[0] + box_width){
         par.newp.x = bottom_pt[0] + box_width - col;
-//        glm::dvec3 normal = glm::dvec3(-1,0,0);
-//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-//        par.newp.x = par.newp.x + dt * reflectedDir.x;
     }
     if (par.newp.y > bottom_pt[1] + box_height){
         par.newp.y = bottom_pt[1] + box_height - col;
-//        glm::dvec3 normal = glm::dvec3(0,-1,0);
-//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-//        par.newp.y = par.newp.y + dt * reflectedDir.y;
     }
     if (par.newp.z > bottom_pt[2] + box_length){
         par.newp.z = bottom_pt[2] + box_length - col;
-//        glm::dvec3 normal = glm::dvec3(0,0,-1);
-//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-//        par.newp.z = par.newp.z + dt * reflectedDir.z;
     }
 
     if (par.newp.x < bottom_pt[0]){
         par.newp.x = bottom_pt[0] + col;
-//        glm::dvec3 normal = glm::dvec3(1,0,0);
-//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-//        par.newp.x = par.newp.x + dt * reflectedDir.x;
     }
     if (par.newp.y < bottom_pt[1]){
         par.newp.y = bottom_pt[1] + col;
-//        glm::dvec3 normal = glm::dvec3(0,1,0);
-//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-//        par.newp.y = par.newp.y + dt * reflectedDir.y;
     }
     if (par.newp.z < bottom_pt[2]){
         par.newp.z = bottom_pt[2] + col;
-//        glm::dvec3 normal = glm::dvec3(0,0,1);
-//        glm::dvec3 reflectedDir = par.v - glm::dvec3(2.0*(normal*(glm::dot(par.v,normal))));
-//        par.newp.z = par.newp.z + dt * reflectedDir.z;
     }
+   
+    bool obstacle_x = (par.newp.x >= obstacle_bottom_pt[0]) and (par.newp.x <= obstacle_bottom_pt[0] + obstacle_box_width);
+    bool obstacle_y = (par.newp.y >= obstacle_bottom_pt[0]) and (par.newp.y <= obstacle_bottom_pt[0] + obstacle_box_height);
+    bool obstacle_z = (par.newp.z >= obstacle_bottom_pt[0]) and (par.newp.z <= obstacle_bottom_pt[0] + obstacle_box_length); 
+
+    if (obstacle_x){
+        par.newp.x = obstacle_bottom_pt[0] + obstacle_box_width - col;
+    }
+    if (obstacle_y){
+        par.newp.y = obstacle_bottom_pt[1] + obstacle_box_height - col;
+    }
+    if (obstacle_z){
+        par.newp.z = obstacle_bottom_pt[2] + obstacle_box_length - col;
+    }
+
 
 }
 

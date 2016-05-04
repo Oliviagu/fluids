@@ -39,7 +39,7 @@ typedef struct Particle
 
 class Particles {
 public:
-    Particles(float most_bottom[3], float cube_width, float cube_length, float cube_height);
+    Particles(float most_bottom[3], float cube_width, float cube_length, float cube_height, float most_bottom_obstacle[3], float obstacle_width, float obstacle_length, float obstacle_height);
 	  float kernel_size;
    	float radius;
    	float k;
@@ -53,6 +53,10 @@ public:
     float box_width;
     float box_length;
     float box_height;
+    float obstacle_bottom_pt[3];
+    float obstacle_box_width;
+    float obstacle_box_length;
+    float obstacle_box_height;
 
     void render() const;
     void step(); // simulate one frame
