@@ -93,6 +93,34 @@ void cube(){
 }
 
 void make_obstacle(){
+    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat mat_shininess[] = { 75.0 };
+    GLfloat light_position[] = { 10.0, 10.0, 10.0, 0.0 };
+    glShadeModel (GL_SMOOTH);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_DIFFUSE);
+    glColor3f(0.5, 0.2, 0.3);
+    glColorMaterial(GL_FRONT, GL_SPECULAR);
+    glColor3f(0.7, 0.7, 0.7);
+    glColorMaterial(GL_FRONT, GL_AMBIENT);
+    glColor3f(0.2, 0.3, 0.4);
+
+    float cent = obstacle_length / 2.;
+
+    // glPushMatrix();
+    // glTranslatef(most_bottom_obstacle[0]+ cent, most_bottom_obstacle[0] + cent, most_bottom_obstacle[0] + cent);
+    // glutSolidCube(obstacle_length);
+    // glPopMatrix();
+
+
     quad_obstacle(0,3,2,1);
     quad_obstacle(2,3,7,6);
     quad_obstacle(0,4,7,3);

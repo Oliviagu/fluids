@@ -32,6 +32,7 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     obstacle_box_width = obstacle_width;
     obstacle_box_length = obstacle_length;
     obstacle_box_height = obstacle_height;
+
     int nx = 5;
     int ny = 5;
     int nz = 5;
@@ -118,6 +119,7 @@ void Particles::step() //simulation loop
         for(Particle &par : particles) {
             par.prev_newp = par.newp;
             par.newp += par.deltap;
+            //printf("updated newp  newp x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
         }
         iter++;
     }
