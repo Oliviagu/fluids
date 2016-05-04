@@ -57,7 +57,7 @@ int frame = 0;
 const int render_step = 3;
 int mx, my;
 
-Particles particles = Particles(most_bottom, cube_width, cube_length, cube_height);
+Particles particles = Particles(most_bottom, cube_width, cube_length, cube_height, most_bottom_obstacle, obstacle_width, obstacle_length, obstacle_height);
 
 void display(void);
 
