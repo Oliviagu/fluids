@@ -33,9 +33,9 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     obstacle_box_length = obstacle_length;
     obstacle_box_height = obstacle_height;
 
-    int nx = 20;
-    int ny = 20;
-    int nz = 20;
+    int nx = 15;
+    int ny = 15;
+    int nz = 15;
     float d = 0.1;
 
     kernel_size = d * 1.4;
