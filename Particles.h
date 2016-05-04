@@ -29,6 +29,7 @@ typedef struct Particle
 {
     glm::dvec3 p;
     glm::dvec3 newp;
+    glm::dvec3 prev_newp;
     glm::dvec3 v;
     std::vector<Particle *> neighbors;
     float lambda; //constraint force
