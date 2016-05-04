@@ -32,9 +32,10 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     obstacle_box_width = obstacle_width;
     obstacle_box_length = obstacle_length;
     obstacle_box_height = obstacle_height;
-    int nx = 1;
-    int ny = 1;
-    int nz = 1;
+
+    int nx = 5;
+    int ny = 5;
+    int nz = 5;
     float d = 0.1;
 
     kernel_size = d * 1.4;
@@ -60,6 +61,7 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
                 Particle par;
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
                 par.newp = par.p;
+                par.prev_newp = par.p;
                 par.v = glm::dvec3(0, 0, 0);
                 par.neighbors = {};
                 par.lambda = 0;
@@ -92,6 +94,7 @@ void Particles::step() //simulation loop
         par.v = par.v + (extForce(par.p) * dt); //apply forces
         //printf("%f\n", par.v.y);
         par.newp = par.p + (dt * par.v); //predict position
+        par.prev_newp = par.p;
     }
     std::map<std::string, std::vector<Particle *>>  cell_id_list; 
     createCellIdList(cell_id_list);
@@ -114,6 +117,7 @@ void Particles::step() //simulation loop
 
         }
         for(Particle &par : particles) {
+            par.prev_newp = par.newp;
             par.newp += par.deltap;
         }
         iter++;
@@ -176,12 +180,6 @@ void Particles::findNeighbors(Particle &par, std::map<std::string, std::vector<P
         if (cell_id_map.find(id) != cell_id_map.end()) {
           //found
             par.neighbors.insert(par.neighbors.end(), cell_id_map[id].begin(), cell_id_map[id].end());
-//          for (Particle * n : cell_id_map[id]) {
-//            glm::dvec3 npos = n->newp;
-//            if (dvec3_length(npos - par.newp) <= kernel_size) {
-//              par.neighbors.insert(par.neighbors.end(), n);
-//            }
-//          }
         }
       }
     }
@@ -269,17 +267,51 @@ void Particles::calcCollision(Particle &par) {
     }
    
     bool obstacle_x = (par.newp.x >= obstacle_bottom_pt[0]) and (par.newp.x <= obstacle_bottom_pt[0] + obstacle_box_width);
-    bool obstacle_y = (par.newp.y >= obstacle_bottom_pt[0]) and (par.newp.y <= obstacle_bottom_pt[0] + obstacle_box_height);
-    bool obstacle_z = (par.newp.z >= obstacle_bottom_pt[0]) and (par.newp.z <= obstacle_bottom_pt[0] + obstacle_box_length); 
+    bool obstacle_y = (par.newp.y >= obstacle_bottom_pt[1]) and (par.newp.y <= obstacle_bottom_pt[1] + obstacle_box_height);
+    bool obstacle_z = (par.newp.z >= obstacle_bottom_pt[2]) and (par.newp.z <= obstacle_bottom_pt[2] + obstacle_box_length); 
+
+    auto plane_intersect = [] (float p, float o, float d) -> float {
+      return (p - o) / d;
+    };
 
     if (obstacle_x){
-        par.newp.x = obstacle_bottom_pt[0] + obstacle_box_width - col;
+      float t_left = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0], par.v.x);
+      float t_right = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0] + obstacle_box_width, par.v.x);
+      if (t_left >= 0 and t_right >= 0) {
+        if (t_left < t_right) {
+          par.newp.x = par.prev_newp.x + t_left * par.v.x - col;
+        } else {
+          par.newp.x = par.prev_newp.x + t_right * par.v.x + col;
+        }
+      } else {
+        printf("ERROR\n");
+      }
     }
     if (obstacle_y){
-        par.newp.y = obstacle_bottom_pt[1] + obstacle_box_height - col;
+        float t_left = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1], par.v.y);
+        float t_right = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1] + obstacle_box_height, par.v.y);
+        if (t_left >= 0 and t_right >= 0) {
+          if (t_left < t_right) {
+            printf("ERROR\n");
+          } else {
+            par.newp.y = par.prev_newp.y + t_right * par.v.y + col;
+          }
+        } else {
+          printf("ERROR\n");
+        }
     }
     if (obstacle_z){
-        par.newp.z = obstacle_bottom_pt[2] + obstacle_box_length - col;
+        float t_left = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2], par.v.z);
+        float t_right = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2] + obstacle_box_length, par.v.z);
+        if (t_left >= 0 and t_right >= 0) {
+          if (t_left < t_right) {
+            par.newp.z = par.prev_newp.z + t_left * par.v.z - col;
+          } else {
+            par.newp.z = par.prev_newp.z + t_right * par.v.z + col;
+          }
+        } else {
+          printf("ERROR\n");
+        }
     }
 
 
@@ -352,15 +384,6 @@ void Particles::render() const
     
     for(const Particle &par : particles)
     {    
-        // float random = rand();
-        // float a = clip(random, 0.0, 1.0);
-
-        // glColorMaterial(GL_FRONT, GL_DIFFUSE);
-        // glColor3f(a, a, a);
-        // glColorMaterial(GL_FRONT, GL_SPECULAR);
-        // glColor3f(a, a, a);
-        // glColorMaterial(GL_FRONT, GL_AMBIENT);
-        // glColor3f(a, a, a);
 
         glPushMatrix();
         glTranslatef(par.p.x, par.p.y, par.p.z);

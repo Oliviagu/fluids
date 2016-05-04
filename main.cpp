@@ -115,9 +115,9 @@ void make_obstacle(){
 
     float cent = obstacle_length / 2.;
 
-    glPushMatrix();
-    glTranslatef(most_bottom_obstacle[0]+ cent, most_bottom_obstacle[0] + cent, most_bottom_obstacle[0] + cent);
-    glutSolidCube(obstacle_length);
+    // glPushMatrix();
+    // glTranslatef(most_bottom_obstacle[0]+ cent, most_bottom_obstacle[0] + cent, most_bottom_obstacle[0] + cent);
+    // glutSolidCube(obstacle_length);
     // glPopMatrix();
 
 
