@@ -29,10 +29,6 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
     obstacle_bottom_pt[0] = most_bottom_obstacle[0];
     obstacle_bottom_pt[1] = most_bottom_obstacle[1];
     obstacle_bottom_pt[2] = most_bottom_obstacle[2];
-    printf("obstacle box x %f y %f z %f\n", obstacle_bottom_pt[0], 
-        obstacle_bottom_pt[1], obstacle_bottom_pt[2]);
-    printf("other obstacle box x %f y %f z %f\n", obstacle_bottom_pt[0] + obstacle_width, 
-        obstacle_bottom_pt[1] + obstacle_height, obstacle_bottom_pt[2] + obstacle_length);
     obstacle_box_width = obstacle_width;
     obstacle_box_length = obstacle_length;
     obstacle_box_height = obstacle_height;
@@ -65,7 +61,6 @@ Particles::Particles(float most_bottom[3], float cube_width, float cube_length, 
                 Particle par;
                 par.p = glm::dvec3((x+0.5-nx*0.5)*d, (y+0.5)*d-1.0, (z+0.5-nz*0.5)*d);
                 par.newp = par.p;
-                printf("initial par p x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
                 par.prev_newp = par.p;
                 par.v = glm::dvec3(0, 0, 0);
                 par.neighbors = {};
@@ -251,8 +246,7 @@ void Particles::calcDeltaP(Particle &par)
 
 
 void Particles::calcCollision(Particle &par) {
-  printf("collision  newp x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
-    float col = 0.0014f;
+    float col = 0.004f;
     if (par.newp.x > bottom_pt[0] + box_width){
         par.newp.x = bottom_pt[0] + box_width - col;
     }
@@ -283,7 +277,21 @@ void Particles::calcCollision(Particle &par) {
     };
 
     if (obstacle_x and obstacle_y and obstacle_z) {
-      if (obstacle_x){
+      printf("OBSTACLE\n");
+      printf("collision  newp x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
+      printf("collision  prev_newp x %f y %f z %f\n", par.prev_newp.x, par.prev_newp.y, par.prev_newp.z);
+      printf("obstacle x bool %d\n", obstacle_x);
+      printf("obstacle y bool %d\n", obstacle_y);
+      printf("obstacle z bool %d\n", obstacle_z);
+
+      printf("collision  prev_newp x %f y %f z %f\n", par.prev_newp.x, par.prev_newp.y, par.prev_newp.z);
+      bool new_obstacle_x = (par.prev_newp.x >= obstacle_bottom_pt[0]) and (par.prev_newp.x <= obstacle_bottom_pt[0] + obstacle_box_width);
+      bool new_obstacle_y = (par.prev_newp.y >= obstacle_bottom_pt[1]) and (par.prev_newp.y <= obstacle_bottom_pt[1] + obstacle_box_height);
+      bool new_obstacle_z = (par.prev_newp.z >= obstacle_bottom_pt[2]) and (par.prev_newp.z <= obstacle_bottom_pt[2] + obstacle_box_length); 
+      printf("new obstacle x bool %d\n", new_obstacle_x);
+      printf("new obstacle y bool %d\n", new_obstacle_y);
+      printf("new obstacle z bool %d\n", new_obstacle_z);
+      if (par.v.x != 0){
         float t_left = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0], par.v.x);
         float t_right = plane_intersect(par.prev_newp.x, obstacle_bottom_pt[0] + obstacle_box_width, par.v.x);
         if (t_left >= 0 and t_right >= 0) {
@@ -297,21 +305,16 @@ void Particles::calcCollision(Particle &par) {
           printf("X ERROR t_left %f t_right %f \n", t_left, t_right);
         }
       }
-      if (obstacle_y){
+      if (par.v.y != 0){
           float t_left = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1], par.v.y);
           float t_right = plane_intersect(par.prev_newp.y, obstacle_bottom_pt[1] + obstacle_box_height, par.v.y);
-          if (t_left >= 0 and t_right >= 0) {
-            if (t_left < t_right) {
-              printf(" Y bottom ERROR\n");
-            } else {
-              par.newp.y = par.prev_newp.y + (t_right * par.v.y) + col;
-            }
+          if (t_left < t_right) {
+            printf(" Y bottom ERROR\n");
           } else {
-            printf("y error newp y %f\n", par.newp.y);
-            printf("Y ERROR t_left %f t_right %f \n", t_left, t_right);
+            par.newp.y = par.prev_newp.y + t_right * par.v.y + col;
           }
       }
-      if (obstacle_z){
+      if (par.v.z != 0){
           float t_left = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2], par.v.z);
           float t_right = plane_intersect(par.prev_newp.z, obstacle_bottom_pt[2] + obstacle_box_length, par.v.z);
           if (t_left >= 0 and t_right >= 0) {
@@ -325,7 +328,16 @@ void Particles::calcCollision(Particle &par) {
             printf("Z ERROR t_left %f t_right %f \n", t_left, t_right);
           }
       }
-      //printf("collision x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
+      printf("collision result newp x %f y %f z %f\n", par.newp.x, par.newp.y, par.newp.z);
+      obstacle_x = (par.newp.x >= obstacle_bottom_pt[0]) and (par.newp.x <= obstacle_bottom_pt[0] + obstacle_box_width);
+      obstacle_y = (par.newp.y >= obstacle_bottom_pt[1]) and (par.newp.y <= obstacle_bottom_pt[1] + obstacle_box_height);
+      obstacle_z = (par.newp.z >= obstacle_bottom_pt[2]) and (par.newp.z <= obstacle_bottom_pt[2] + obstacle_box_length); 
+      printf("obstacle x bool %d\n", obstacle_x);
+      printf("obstacle y bool %d\n", obstacle_y);
+      printf("obstacle z bool %d\n", obstacle_z);
+      if (new_obstacle_x and new_obstacle_y and new_obstacle_z) {
+        printf("WTF\n");
+      }
   }
 
 }

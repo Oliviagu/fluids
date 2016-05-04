@@ -206,7 +206,6 @@ void display(void)
     glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
     particles.render();
 
-    make_obstacle();
     glutSwapBuffers();
 }
 
