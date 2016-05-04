@@ -304,7 +304,7 @@ void Particles::calcCollision(Particle &par) {
             if (t_left < t_right) {
               printf(" Y bottom ERROR\n");
             } else {
-              par.newp.y = par.prev_newp.y + t_right * par.v.y + col;
+              par.newp.y = par.prev_newp.y + (t_right * par.v.y) + col;
             }
           } else {
             printf("y error newp y %f\n", par.newp.y);
