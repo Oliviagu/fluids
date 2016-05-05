@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>  
+    div.padded {  
+      padding-top: 0px;  
+      padding-right: 100px;  
+      padding-bottom: 0.25in;  
+      padding-left: 100px;  
+    }  
+  </style> 
+<title>Fluid Simulator |  CS 184</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+<br />
+<h1 align="middle">Final Project: Fluid Simulator</h1>
+    <h2 align="middle">Jessica Gu, Olivia Gu, Robert Chang</h2>
+
+
+    <div align="center">
+        <table style="width=100%" border="0px" cellpadding="10px">
+            <tr>
+                <td>
+                <img src="images/actionshots/1.png" width="300px" />
+                <td>
+                <img src="images/actionshots/2.png" width="480px" />
+                <td>
+                <img src="images/actionshots/3.png" width="300px" />
+            </tr>
+        </table>
+    </div>
+
+
+    <div class="padded">
+    <h2 align="middle">Abstract</h2>
+        <p>In this project we built a fluid simulator by modeling fluid using particles. Our final simulations included a scene where a x by x by x cube of particles drops into an empty box in addition to a scene where a x by x by x cube of particles drops onto an obstacle, a 3D cube, that the particles must move around, almost creating a waterfall effect. </p>
+        <p>Our simulator begins with a predefined number of particles and parameters and with each iteration, it recalculates each particles’ position. These particles and their movement was calculated with physical accuracy, through the use of position and velocity formulas and gravity. In addition, our particles are modeled with incompressibility in mind, a defining attribute of fluids. Lastly, the system is fully reactive to its surroundings, be it the walls of the empty box or the occlusion in the center of the box through complex ray tracing and collision detection. </p>
+
+    <h2 align="middle">Technical Approach</h2>
+        <h3 align="left">Initial</h3>
+        <p></p>
+
+        <div align="center">
+            <table style="width=100%" border="1px" cellpadding="10px">
+                <tr>
+                    <td>
+                    <img src="images/pt1.png" width="480px" />
+                    <td>
+                    <figcaption align="middle">hq render(1024spp, 1splight, 100bounce) - manually focused</figcaption>
+            </table>
+        </div>
+
+        <h3 align="left">Further Work</h3>
+        <p></p>
+
+    <h2 align="middle">Results</h2>
+    <h3 align="left">Empty Box</h3>
+    <h4 align="left">10x10x10 Particle Cube</h4>
+        <div align="center">
+            <table style="width=100%" border="0px" cellpadding="10px">
+                <tr>
+                    <td>
+                    <img src="images/empty10/1.png" width="250px" />
+                    <td>
+                    <img src="images/empty10/2.png" width="250px" />
+                    <td>
+                    <img src="images/empty10/3.png" width="250px" />
+                    <td>
+                    <img src="images/empty10/5.png" width="250px" />
+            </table>
+        </div>
+
+        <div align="center">
+            <video width="480" height="320" controls>
+                <source src="videos/fluids_10x10x10_empty.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+    <h4 align="left">20x20x20 Particle Cube</h4>
+        <div align="center">
+            <table style="width=100%" border="0px" cellpadding="10px">
+                <tr>
+                    <td>
+                    <img src="images/empty20/1.png" width="250px" />
+                    <td>
+                    <img src="images/empty20/5.png" width="250px" />
+                    <td>
+                    <img src="images/empty20/8.png" width="250px" />
+                    <td>
+                    <img src="images/empty20/10.png" width="250px" />
+            </table>
+        </div>
+
+        <div align="center">
+            <video width="480" height="320" controls>
+                <source src="videos/fluids_20x20x20_empty.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+    <h3 align="left">Cube Obstacle</h3>
+    <h4 align="left">10x10x10 Particle Cube</h4>
+        <div align="center">
+            <table style="width=100%" border="0px" cellpadding="10px">
+                <tr>
+                    <td>
+                    <img src="images/10/1.png" width="250px" />
+                    <td>
+                    <img src="images/10/3.png" width="250px" />
+                    <td>
+                    <img src="images/10/5.png" width="250px" />
+                    <td>
+                    <img src="images/10/7.png" width="250px" />
+            </table>
+        </div>
+
+        <div align="center">
+            <video width="480" height="320" controls>
+                <source src="videos/fluids_10x10x10 obstacle.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+    <h4 align="left">15x15x15 Particle Cube</h4>
+        <div align="center">
+            <table style="width=100%" border="0px" cellpadding="10px">
+                <tr>
+                    <td>
+                    <img src="images/15/1.png" width="250px" />
+                    <td>
+                    <img src="images/15/3.png" width="250px" />
+                    <td>
+                    <img src="images/15/5.png" width="250px" />
+                    <td>
+                    <img src="images/15/8.png" width="250px" />
+            </table>
+        </div>
+
+        <div align="center">
+            <video width="480" height="320" controls>
+                <source src="videos/fluids_15x15x15_obstacle.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+    <h2 align="middle">References</h2>
+        <p></p>
+
+    <h2 align="middle">Contributions</h2>
+        <p></p>
+
+</div>
+</body>
+</html>
+
+
+
+
