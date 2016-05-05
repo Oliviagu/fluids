@@ -39,25 +39,110 @@
         <p>Our simulator begins with a predefined number of particles and parameters and with each iteration, it recalculates each particles’ position. These particles and their movement was calculated with physical accuracy, through the use of position and velocity formulas and gravity. In addition, our particles are modeled with incompressibility in mind, a defining attribute of fluids. Lastly, the system is fully reactive to its surroundings, be it the walls of the empty box or the occlusion in the center of the box through complex ray tracing and collision detection. </p>
 
     <h2 align="middle">Technical Approach</h2>
-        <h3 align="left">Initial</h3>
-        <p></p>
+        <p>We implemented the pseudocode from Macklin and Muller’s paper <i>Position Based Fluids</i>. Here’s the pseudocode.</p>
 
         <div align="center">
-            <table style="width=100%" border="1px" cellpadding="10px">
-                <tr>
-                    <td>
-                    <img src="images/pt1.png" width="480px" />
-                    <td>
-                    <figcaption align="middle">hq render(1024spp, 1splight, 100bounce) - manually focused</figcaption>
-            </table>
+            <img src="pseudocode.png" width="480px"/>
+            <figcaption align="middle">From Macklin and Müller(see References)</figcaption>
+        </div>
+
+        <p>We first started by applying a gravitational force to every particle. The force of gravity is 9.81m/s^2 in the negative y direction. Therefore, we did v_i  +=delta_t * glm::dvec3(0, -9.81, 0). Now that we’ve calculated the new velocity, we can predict the new position of each particle with new_pos = pos + delta_t * v_i . </p>
+
+        <p>Then we need to find the neighbors of each particle. The neighbors of a particle are within kernel_size distance from the particle. It is important is note that the neighbors of a particle include itself.</p> 
+
+        <p>In order to find the neighbors, we implemented the “Uniform Grid using Sorting” method found in the <i>Particle Simulation using CUDA</i>by Simon Green. We imagined the simulation area to be in a 3D grid, which each grid cell was kernel_size by kernel_size (there was no actual grid structure created). If a particle was at position (x, y, z), then it lied in grid cell (x / kernel_size , y / kernel_size , z / kernel_size) . The neighbors of a particle at grid cell a, b, c were are grid cells (d, e, f) where d is in {a - 1, a, a + 1}, e is in {b - 1, b, b + 1}, and f is in {c - 1, c, c + 1}. So there was a total of 27 neighboring grid cells. </p>
+
+        <p>Neighbors were stored as a vector inside each particle. The vector contained particle pointers (we made sure not to have copies of the neighbors in the vector) since particles change as we enter the while loop.</p>
+
+        <p>Now we could enter into the while loop that ran nIters steps. The purpose of the while loop is to adjust the proposed new position of each particle so that all particles obey the density constraint. We want to make sure our particles have the right amount of compressibility.</p>
+
+        <p>We first found the constraint force (lambda) needed for each particle. Lambda was calculated with </p>
+
+        <div align="center">
+            <img src="lambda.png" width="200"/>
+            <figcaption align="middle">[From Macklin and Müller(see References)]</figcaption>
+        </div>
+
+        <p>C_i(p_1 … p_n) is the density constraint of each particle. C_i comes from </p>
+
+        <div align="center">
+            <img src="ci.png" width="200"/>
+            <figcaption align="middle">From Macklin and Müller(see References)</figcaption>
+        </div>
+
+        <p>, where p_o is the rest density and p_i is the density at particle i. Rest density is the density when the particles are at rest. Therefore, in the beginning timestep, p_i is close to p_o since all the particles are at rest (no force has been applied yet). Therefore C_i(p_1 … p_n) is close to 0. </p>
+
+        <div align="center">
+            <img src="pi.png" width="200"/>
+            <figcaption align="middle">From Macklin and Müller(see References)</figcaption>
+        </div>
+
+        <p>, where the mass of each particle is 1 and we apply a smoothing kernel, that takes in the kernel_size and the  vector between a particle and a neighbor. Smoothing kernel is to estimate the density.</p>
+
+        <p>The smoothing kernel function that we used comes from Macklin and Muller’s slides on <i>Position Based Fluids</i>. W is </p>
+
+        <div align="center">
+            <img src="poly.png" width="200"/>
+            <figcaption align="middle">From Macklin and Müllers slides(see References)</figcaption>
+        </div>
+
+        <p>Now that we have lambda, we are ready to calculate delta_p. Delta_p is the amount to changed the proposed new position.</p> 
+
+        <p>For delta_p, we go through all neighbors of the particle. The formula we used is seen at here:</p>
+
+        <div align="center">
+            <img src="deltap.png" width="200"/>
+            <figcaption align="middle">From Macklin and Müller (see References)</figcaption>
+        </div>
+
+        <p>gradient_W takes in the kernel_size and the vector between a particle and its neighbor. Gradient_w calculates the gradient. Gradient_W comes from Macklin and Muller’s slides on <i>Position Based Fluids</i>.</p>
+
+        <div align="center">
+            <img src="spiky.png" width="200"/>
+            <figcaption align="middle">From Macklin and Müllers slides(see References)</figcaption>
+        </div>
+
+        <p>Delta_p is then the summation of the (sum of the constraint force of both particles multiplied by the gradient_w)  over the neighbors. Delta_p is then divided by the rest_density.</p>
+
+        <p>We now need to make sure that the new position doesn’t collide with the box.. If the new position is outside of the bounding box, we then set the particle to be slightly inside of the box. For example, if the the x of the new position is more than bottom_pt[0] + box_width (which is the max x coordinate of the bounding box), then we set the x to be bottom_pt[0] + box_width - 0.004f. </p>
+
+        <p>We did a extra part in that we added an obstacle to the particles. We created a small box in the bounding box. The particles would have to go around the small obstacle box, instead of ignoring it. In order to implement this, we modified the calculating collisions code.</p>
+
+        <p>In addition to the original code, we checked with the new position was inside the obstacle box. (To be inside the obstacle box, both x and y and z of the new position must be inside the obstacle box.) If it was, then that meant we collided with the obstacle and must move the new position to be outside of the obstacle box.</p>
+
+        <p>To see if we needed to the y of the obstacle box, we checked if the particle’s velocity.y was not 0. If it was 0, then that meant we couldn’t move the new position in the y direction since there was no velocity that way. Therefore, we would have to move either/both the x and z parts of the new position. (A new position is not in the obstacle box is at 1 of it’s coordinates (x, y or z) is not in the box). What we do with y, we apply the same process to x and z coordinate.</p>
+
+        <p>If we were to move the x coordinate of the new position, we had to calculate when the particle had intersected the obstacle box in the x direction. We used the plane intersection formula of (p - o) / d in order to find the time when the particle had hit the obstacle box. Therefore, what is o? O is the previous new position of the particle. Therefore, we had to create a new field called “prev_newp” in order to save the previous new position of each particle. </p>
+
+        <p>We applied the plane intersection formula to both x faces of the cube. Whichever time intersection of the 2 planes was the smaller was the plane that the particle actually went through. We knew knew that both time intersections had to have the same sign because if it wasn’t, then that meant the previous new position was previously inside the obstacle box. If t_left is the correct intersection time, then we set the new position of the particle to be par.prev_newp.x + t_left * par.v.x - 0.004f.</p>
+
+        <p>We applied the same process to the y and z coordinates of the particle.</p>
+
+        <p>Once collisions are calculated, we then increment the new position of the particle by delta_p. </p>
+
+        <p>We keep on calculating delta_p for nIters iteration. Once nIters is done, we have found our final new_position of the particle. Therefore, we set the position of the particle to be the new position. </p>
+
+        <p>We also calculate the velocity. Velocity of a particle is the direction from the old position to the new position. We then divide this direction by delta_t. The formula we used can be seen at the bottom here. </p>
+
+        <div align="center">
+            <img src="vi.png" width="200"/>
+            <figcaption align="middle">From Macklin and Müllers slides(see References)</figcaption>
+        </div>
+
+        <h3 align="left">Bugs and Complications</h3>
+        <p> Throughout the project we found several bugs that led to strange errors. For example we didn't reset neighbors and miscalculated outputs of the spiky kernel function and delta_p. Several of these bugs resulted incompressibility issues and led to outputs like the following</p>
+
+        <div align="center">
+            <img src="bug.png" width="300"/>
+            <figcaption align="middle">incompressibility issues</figcaption>
         </div>
 
         <h3 align="left">Further Work</h3>
-        <p></p>
+        <p>Next steps for this project would be to finish implementing viscosity and vorticity in addition to implementing parallelization. Our 20x20x20 demo belong took 8 hours and 30 minutes to complete locally and really could have benefited from speed improvements. In addition it would be interesting to make the water more realistic or try more complex occlusions.</p>
 
     <h2 align="middle">Results</h2>
-    <h3 align="left">Empty Box</h3>
-    <h4 align="left">10x10x10 Particle Cube</h4>
+    <h3 align="center">Empty Box</h3>
+    <h4 align="center">10x10x10 Particle Cube</h4>
         <div align="center">
             <table style="width=100%" border="0px" cellpadding="10px">
                 <tr>
@@ -79,7 +164,7 @@
             </video>
         </div>
 
-    <h4 align="left">20x20x20 Particle Cube</h4>
+    <h4 align="center">20x20x20 Particle Cube</h4>
         <div align="center">
             <table style="width=100%" border="0px" cellpadding="10px">
                 <tr>
@@ -101,8 +186,8 @@
             </video>
         </div>
 
-    <h3 align="left">Cube Obstacle</h3>
-    <h4 align="left">10x10x10 Particle Cube</h4>
+    <h3 align="center">Cube Obstacle</h3>
+    <h4 align="center">10x10x10 Particle Cube</h4>
         <div align="center">
             <table style="width=100%" border="0px" cellpadding="10px">
                 <tr>
@@ -124,7 +209,7 @@
             </video>
         </div>
 
-    <h4 align="left">15x15x15 Particle Cube</h4>
+    <h4 align="center">15x15x15 Particle Cube</h4>
         <div align="center">
             <table style="width=100%" border="0px" cellpadding="10px">
                 <tr>
